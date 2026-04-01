@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <style>
+    @font-face {
+      font-family: "Montserrat";
+      src: url(data:font/woff2;base64,{{montserratBase64}}) format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 210mm;
+      height: 297mm;
+      font-family: "Montserrat", sans-serif;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      color: #1a1a1a;
+      position: relative;
+    }
+
+    .page {
+      width: 210mm;
+      height: 297mm;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Header */
+    .header {
+      position: relative;
+      width: 100%;
+    }
+
+    .header-img {
+      width: 100%;
+      display: block;
+    }
+
+    .header-overlay {
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 20px 45px;
+      text-align: right;
+    }
+
+    .invoice-title {
+      font-size: 32px;
+      font-weight: 900;
+      color: white;
+      letter-spacing: 3px;
+    }
+
+    .invoice-no-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: white;
+      margin-top: 4px;
+    }
+
+    /* Content */
+    .content {
+      padding: 20px 40px;
+      flex: 1;
+    }
+
+    /* Date row - overlays bottom of header */
+    .date-row {
+      display: flex;
+      gap: 30px;
+      margin-top: -90px;
+      position: relative;
+      z-index: 2;
+      padding: 0 40px;
+      margin-bottom: 16px;
+    }
+
+    .date-box {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .date-box span {
+      font-weight: 400;
+    }
+
+    /* Info row */
+    .info-row {
+      display: flex;
+      justify-content: flex-start;
+      margin-bottom: 24px;
+      gap: 60px;
+    }
+
+    .info-left {
+      font-size: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .info-right {
+      font-size: 16px;
+      font-weight: 700;
+      text-align: left;
+    }
+
+    /* Table */
+    .invoice-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 0;
+    }
+
+    .invoice-table th {
+      font-size: 13px;
+      font-weight: 700;
+      text-align: left;
+      text-transform: uppercase;
+      padding: 10px 12px;
+      background-color: #2d6a4f;
+      color: white;
+      letter-spacing: 0.5px;
+    }
+
+    .invoice-table th:first-child {
+      border-radius: 6px 0 0 0;
+    }
+
+    .invoice-table th:last-child {
+      border-radius: 0 6px 0 0;
+    }
+
+    .invoice-table td {
+      font-size: 14px;
+      padding: 8px 12px;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: top;
+    }
+
+    .invoice-table tr:nth-child(even) td {
+      background-color: #f9fafb;
+    }
+
+    .invoice-table .col-description {
+      width: 45%;
+    }
+
+    .invoice-table .col-amount {
+      width: 25%;
+    }
+
+    .invoice-table .col-transport {
+      width: 30%;
+    }
+
+    /* Totals */
+    .totals-section {
+      margin-top: 12px;
+      margin-bottom: 8px;
+    }
+
+    .totals-table {
+      border-collapse: collapse;
+      margin-left: auto;
+      width: 320px;
+    }
+
+    .totals-table td {
+      padding: 6px 14px;
+      font-size: 14px;
+    }
+
+    .totals-table .label {
+      font-weight: 600;
+      text-align: right;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .totals-table .value {
+      text-align: right;
+      font-weight: 500;
+    }
+
+    .totals-table .total-row-final td {
+      border-top: 2px solid #2d6a4f;
+      padding-top: 10px;
+      padding-bottom: 10px;
+    }
+
+    .totals-table .total-row-final .label {
+      font-size: 16px;
+      font-weight: 800;
+      color: #1a1a1a;
+    }
+
+    .totals-table .total-row-final .value {
+      font-size: 18px;
+      font-weight: 800;
+      color: #2d6a4f;
+    }
+
+    /* Direction (in info row) */
+    .info-direction {
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    .info-direction-label {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: #888;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+
+    .info-direction-value {
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    /* Signature */
+    .signature-area {
+      position: absolute;
+      right: 40px;
+      bottom: 200px;
+      text-align: center;
+    }
+
+    .signature-stamp {
+      width: 150px;
+      height: auto;
+      margin-bottom: -30px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .signature-name {
+      font-size: 15px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .signature-title {
+      font-size: 11px;
+      font-weight: 500;
+      color: #555;
+      margin-top: 2px;
+    }
+
+    /* Bank info */
+    .bank-info {
+      position: absolute;
+      bottom: 195px;
+      left: 40px;
+      text-align: left;
+      font-size: 15px;
+      font-weight: 700;
+    }
+
+    .bank-info div {
+      margin-bottom: 2px;
+    }
+
+    /* Partner logos */
+    .partner-logos {
+      position: absolute;
+      bottom: 135px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      padding: 0 40px;
+    }
+
+    .partner-logos img {
+      height: 70px;
+      width: auto;
+      object-fit: contain;
+    }
+
+    /* Footer */
+    .footer {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+    }
+
+    .footer-img {
+      width: 100%;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- Header -->
+    <div class="header">
+      <img class="header-img" src="data:image/png;base64,{{headerBase64}}" alt="WEFORWARD" />
+      <div class="header-overlay">
+        <div class="invoice-title">INVOICE</div>
+        <div class="invoice-no-value">{{invoiceNo}}</div>
+      </div>
+    </div>
+
+    <!-- Dates - overlapping header -->
+    <div class="date-row">
+      <div class="date-box">Invoice Date: <span>{{invoiceDate}}</span></div>
+      <div class="date-box">Invoice Due Date: <span>{{invoiceDueDate}}</span></div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <!-- Company Info & Direction -->
+      <div class="info-row">
+        <div class="info-left">
+          <div>{{invoiceTo}}</div>
+          <div>ID: {{invoiceToId}}</div>
+        </div>
+        <div class="info-right">
+          <div>WEFORWARD LLC</div>
+          <div>ID: 202456393</div>
+        </div>
+        <div class="info-direction">
+          <div class="info-direction-label">Direction</div>
+          <div class="info-direction-value">{{direction}}</div>
+        </div>
+      </div>
+
+      <!-- Items Table -->
+      <table class="invoice-table">
+        <thead>
+          <tr>
+            <th class="col-description">Description</th>
+            <th class="col-amount">Amount</th>
+            <th class="col-transport">Transport Unit Numbers</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{tableRows}}
+        </tbody>
+      </table>
+
+      <!-- Totals -->
+      <div class="totals-section">
+        <table class="totals-table">
+          <tr>
+            <td class="label">Subtotal</td>
+            <td class="value">{{subtotal}}</td>
+          </tr>
+          <tr>
+            <td class="label">VAT ({{vatDisplay}})</td>
+            <td class="value">{{vatAmount}}</td>
+          </tr>
+          <tr class="total-row-final">
+            <td class="label">Total</td>
+            <td class="value">{{totalPrice}}</td>
+          </tr>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- Bank Info -->
+    <div class="bank-info">
+      <div>Bank: JSC TBC Bank</div>
+      <div>Bank Code: TBCBGE22</div>
+      <div>IBAN Number: GE29TB7006536070100002</div>
+    </div>
+
+    <!-- Signature -->
+    <div class="signature-area">
+      <img class="signature-stamp" src="data:image/png;base64,{{signBase64}}" alt="Stamp" />
+      <div class="signature-name">KAKHABER KOCHIASHVILI</div>
+      <div class="signature-title">Company CEO, WEFORWARD LLC</div>
+    </div>
+
+    <!-- Partner Logos -->
+    <div class="partner-logos">
+      <img src="data:image/png;base64,{{logo1Base64}}" alt="Partner 1" />
+      <img src="data:image/png;base64,{{logo2Base64}}" alt="Partner 2" />
+      <img src="data:image/png;base64,{{logo3Base64}}" alt="Partner 3" />
+      <img src="data:image/png;base64,{{logo4Base64}}" alt="Partner 4" />
+      <img src="data:image/png;base64,{{logo5Base64}}" alt="Partner 5" />
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <img class="footer-img" src="data:image/png;base64,{{footerBase64}}" alt="Footer" />
+    </div>
+  </div>
+</body>
+</html>
