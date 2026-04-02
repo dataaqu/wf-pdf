@@ -138,14 +138,14 @@ export default function TypeForm() {
     const a = document.createElement("a");
     a.href = url;
     const fileName = type === "b" && formData.invoiceNo
-      ? `invoice-${formData.invoiceNo}.pdf`
+      ? `Invoice-WF-${formData.invoiceNo}-${formData.currency || "USD"}.pdf`
       : `${type}-output.pdf`;
     a.download = fileName;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-  }, [pdfBlob, type, formData.invoiceNo]);
+  }, [pdfBlob, type, formData.invoiceNo, formData.currency]);
 
   return (
     <main className="relative min-h-screen p-8 overflow-x-hidden" style={{ backgroundColor: "#1f2023" }}>
