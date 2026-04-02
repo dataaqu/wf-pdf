@@ -74,7 +74,8 @@ export default function TypeForm() {
 
   const config = TYPE_CONFIG[type];
   const [formData, setFormData] = useState<Record<string, string>>(() => {
-    const today = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Tbilisi" })).toISOString().split("T")[0];
+    const now = new Date(Date.now() + 4 * 60 * 60 * 1000);
+    const today = now.toISOString().split("T")[0];
     return { invoiceDate: today, currency: "USD" };
   });
   const [serviceItems, setServiceItems] = useState<ServiceItem[]>([{ description: "", amount: "" }]);
