@@ -314,7 +314,6 @@ export default function TypeForm() {
                           handleChange(field.name, cleaned);
                         }}
                         className="flex-1 px-1 py-2.5 rounded-r-lg outline-none text-white placeholder-white/30 bg-transparent"
-                        placeholder="3274"
                       />
                     </div>
                   ) : field.type === "currency" ? (
