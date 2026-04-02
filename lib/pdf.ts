@@ -59,7 +59,8 @@ export async function generatePdf(
     } catch {
       items = [];
     }
-    const vatPercent = parseFloat(data.vatPercent || "18") || 0;
+    const vatPercent = parseFloat(data.vatPercent || "0") || 0;
+    const currencySymbol = data.currency === "GEL" ? "₾" : data.currency === "EUR" ? "€" : "$";
     const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
@@ -69,21 +70,26 @@ export async function generatePdf(
     // Build table rows HTML
     const tableRows = items.map((item, i) => {
       const desc = esc(item.description);
-      const amt = "$" + fmt(parseFloat(item.amount) || 0);
+      const rawAmt = parseFloat(item.amount) || 0;
+      const isCreditNote = item.description === "Credit Note";
+      const displayAmt = isCreditNote ? "-" + currencySymbol + fmt(rawAmt) : currencySymbol + fmt(rawAmt);
       const transport = esc(transportLines[i] || "");
-      return `<tr><td>${desc}</td><td>${amt}</td><td>${transport}</td></tr>`;
+      return `<tr><td>${desc}</td><td>${displayAmt}</td><td>${transport}</td></tr>`;
     }).join("");
 
     data.tableRows = tableRows;
 
-    const totalAmount = items.reduce((sum, i) => sum + (parseFloat(i.amount) || 0), 0);
+    const totalAmount = items.reduce((sum, i) => {
+      const amt = parseFloat(i.amount) || 0;
+      return i.description === "Credit Note" ? sum - amt : sum + amt;
+    }, 0);
     const vatAmt = totalAmount * vatPercent / 100;
     const totalPrice = totalAmount + vatAmt;
 
-    data.subtotal = "$" + fmt(totalAmount);
+    data.subtotal = currencySymbol + fmt(totalAmount);
     data.vatDisplay = vatPercent + "%";
-    data.vatAmount = "$" + fmt(vatAmt);
-    data.totalPrice = "$" + fmt(totalPrice);
+    data.vatAmount = currencySymbol + fmt(vatAmt);
+    data.totalPrice = currencySymbol + fmt(totalPrice);
     // Clear processed fields so they don't get double-injected
     data.serviceItems = "";
     data.vatPercent = "";

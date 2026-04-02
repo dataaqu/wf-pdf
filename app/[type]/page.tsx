@@ -8,12 +8,28 @@ const VALID_TYPES = ["a", "b"];
 
 const SERVICE_OPTIONS = [
   "Airfreight",
+  "Air Freight",
   "THC",
   "AWB",
   "Marking Fee",
   "Manipulation Fee",
   "Storage Fee",
   "Trucking",
+  "CMR",
+  "RWB",
+  "HBL",
+  "Domestic Transportation",
+  "Custom Clearance",
+  "Re-Loading",
+  "Detention Fee",
+  "Demurrage Fee",
+  "Credit Note",
+  "Declaration Fee",
+  "Export Declaration",
+  "EUR1",
+  "T1",
+  "T2",
+  "Insurance",
 ];
 
 interface ServiceItem {
@@ -39,9 +55,9 @@ const TYPE_CONFIG = {
       { name: "invoiceDate", label: "Invoice Date", type: "date", required: true },
       { name: "invoiceDueDate", label: "Invoice Due Date", type: "date", required: true },
       { name: "invoiceTo", label: "Invoice To", type: "text", required: true, placeholder: "Company Name" },
-      { name: "invoiceToId", label: "Invoice To ID", type: "text", required: true, placeholder: "123456789" },
+      { name: "invoiceToId", label: "VAT#", type: "text", required: true, placeholder: "123456789" },
+      { name: "currency", label: "Currency", type: "currency", required: true },
       { name: "_services", label: "", type: "custom", required: false },
-      { name: "vatPercent", label: "VAT %", type: "text", required: true, placeholder: "18" },
       { name: "_transportUnits", label: "", type: "custom", required: false },
       { name: "direction", label: "Direction", type: "text", required: true, placeholder: "ITALY-PAVDORA. TBILISI-GEORGIA" },
     ],
@@ -57,7 +73,10 @@ export default function TypeForm() {
   }
 
   const config = TYPE_CONFIG[type];
-  const [formData, setFormData] = useState<Record<string, string>>({});
+  const [formData, setFormData] = useState<Record<string, string>>(() => {
+    const today = new Date().toISOString().split("T")[0];
+    return { invoiceDate: today, currency: "USD" };
+  });
   const [serviceItems, setServiceItems] = useState<ServiceItem[]>([{ description: "", amount: "" }]);
   const [transportUnits, setTransportUnits] = useState<string[]>([""]);
   const [loading, setLoading] = useState(false);
@@ -81,6 +100,7 @@ export default function TypeForm() {
         submitData.serviceItems = JSON.stringify(validItems);
         const validUnits = transportUnits.filter(u => u.trim());
         submitData.transportUnitNumbers = validUnits.join("\n");
+        submitData.vatPercent = submitData.currency === "GEL" ? "18" : "0";
       }
 
       const res = await fetch("/api/generate", {
@@ -127,8 +147,8 @@ export default function TypeForm() {
   }, [pdfBlob, type, formData.invoiceNo]);
 
   return (
-    <main className="relative min-h-screen p-8 overflow-hidden" style={{ backgroundColor: "#1f2023" }}>
-      <img src="/logos/back.png" alt="" className="absolute right-0 bottom-0 pointer-events-none" style={{ maxHeight: "78vh", width: "auto" }} />
+    <main className="relative min-h-screen p-8 overflow-x-hidden" style={{ backgroundColor: "#1f2023" }}>
+      <img src="/logos/back.png" alt="" className="absolute right-0 bottom-0 pointer-events-none" style={{ maxHeight: "78vh", width: "auto", overflow: "hidden" }} />
       <div className="max-w-7xl mx-auto relative z-10">
         <Link
           href="/"
@@ -227,7 +247,7 @@ export default function TypeForm() {
                             className="flex items-center w-36 rounded-lg border border-white/10 focus-within:border-emerald-400/40 focus-within:ring-2 focus-within:ring-emerald-400/20 transition-all"
                             style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
                           >
-                            <span className="pl-3 text-white/70 font-medium select-none">$</span>
+                            <span className="pl-3 text-white/70 font-medium select-none">{formData.currency === "GEL" ? "₾" : formData.currency === "EUR" ? "€" : "$"}</span>
                             <input
                               type="text"
                               inputMode="decimal"
@@ -256,7 +276,7 @@ export default function TypeForm() {
                         </div>
                       ))}
                     </div>
-                    {serviceItems.length < 7 && (
+                    {serviceItems.length < 8 && (
                       <button
                         type="button"
                         onClick={() => setServiceItems([...serviceItems, { description: "", amount: "" }])}
@@ -286,17 +306,43 @@ export default function TypeForm() {
                       <span className="pl-4 text-white/70 font-medium select-none">WF-</span>
                       <input
                         type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
                         required={field.required}
+                        placeholder="2424-1"
                         value={formData[field.name] || ""}
                         onChange={(e) => {
-                          const digits = e.target.value.replace(/\D/g, "");
-                          handleChange(field.name, digits);
+                          const cleaned = e.target.value.replace(/[^0-9-]/g, "");
+                          handleChange(field.name, cleaned);
                         }}
                         className="flex-1 px-1 py-2.5 rounded-r-lg outline-none text-white placeholder-white/30 bg-transparent"
                         placeholder="3274"
                       />
+                    </div>
+                  ) : field.type === "currency" ? (
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        {["USD", "EUR", "GEL"].map((cur) => (
+                          <button
+                            key={cur}
+                            type="button"
+                            onClick={() => handleChange("currency", cur)}
+                            className={`flex-1 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                              formData.currency === cur
+                                ? "border-emerald-400 bg-emerald-400/20 text-emerald-400"
+                                : "border-white/10 text-white/50 hover:border-white/30"
+                            }`}
+                            style={formData.currency !== cur ? { backgroundColor: "rgba(255,255,255,0.06)" } : {}}
+                          >
+                            {cur === "USD" ? "$ USD" : cur === "EUR" ? "€ EUR" : "₾ GEL"}
+                          </button>
+                        ))}
+                      </div>
+                      <div
+                        className="flex items-center justify-between px-4 py-2.5 rounded-lg border border-white/10 text-white/50 text-sm"
+                        style={{ backgroundColor: "rgba(255,255,255,0.04)" }}
+                      >
+                        <span>VAT</span>
+                        <span className="font-medium text-white/70">{formData.currency === "GEL" ? "18%" : "0%"}</span>
+                      </div>
                     </div>
                   ) : field.type === "textarea" ? (
                     <textarea
