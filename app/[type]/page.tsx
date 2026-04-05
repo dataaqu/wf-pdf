@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useParams, notFound } from "next/navigation";
 
@@ -32,6 +32,19 @@ const SERVICE_OPTIONS = [
   "Insurance",
 ];
 
+const PAYMENT_TERMS = [
+  "Full payment prior to unloading",
+  "Full payment before the shipment crosses the Georgian border",
+  "50% after loading / 50% prior to unloading",
+  "50% upon loading / 50% after cargo delivery",
+  "Consignment – payment within 1 (one) week after delivery",
+  "Consignment – payment within 2 (two) weeks after delivery",
+  "Consignment – payment within 3 (three) weeks after delivery",
+  "Consignment – payment within 4 (four) weeks after delivery",
+  "Consignment – payment within 1 (one) month after delivery",
+  "Consignment – payment within 2 (two) months after delivery",
+];
+
 const BANKS = [
   { id: "tbc", label: "TBC Bank" },
   { id: "bog", label: "Bank of Georgia" },
@@ -45,14 +58,34 @@ interface ServiceItem {
   amount: string;
 }
 
+interface ServicePriceItem {
+  description: string;
+  amount: string;
+  currency: string;
+}
+
 const TYPE_CONFIG = {
   a: {
     label: "Booking Order",
     color: "blue",
     fields: [
-      { name: "title", label: "Title", type: "text", required: true },
-      { name: "field1", label: "Field 1", type: "text", required: true },
-      { name: "field2", label: "Field 2", type: "text", required: false },
+      { name: "order", label: "Order #", type: "text", required: true, placeholder: "3000" },
+      { name: "orderDate", label: "Order Date", type: "date", required: true },
+      { name: "transportMode", label: "Transportation Mode", type: "transportMode", required: true },
+      { name: "insuranceStatus", label: "Insurance Status", type: "insuranceStatus", required: true },
+      { name: "_servicePrices", label: "", type: "custom", required: false },
+      { name: "paymentTerms", label: "Payment Terms", type: "paymentTerms", required: true },
+      { name: "_shipmentHeader", label: "Shipment Details", type: "header", required: false },
+      { name: "loadingAddress", label: "Loading Address", type: "text", required: true, placeholder: "Loading address" },
+      { name: "unloadingAddress", label: "Unloading Address", type: "text", required: true, placeholder: "Unloading address" },
+      { name: "product", label: "Product", type: "text", required: true, placeholder: "Product description" },
+      { name: "shipmentReadinessDate", label: "Shipment Readiness Date", type: "text", required: true, placeholder: "Enter details" },
+      { name: "orderDetails", label: "Order Details", type: "textarea", required: false, placeholder: "Enter details" },
+      { name: "_customerHeader", label: "Customer Information", type: "header", required: false },
+      { name: "consignee", label: "Consignee", type: "text", required: true, placeholder: "Company name" },
+      { name: "vat", label: "VAT#", type: "text", required: true, placeholder: "123456789" },
+      { name: "email", label: "Email", type: "text", required: true, placeholder: "email@example.com" },
+      { name: "person", label: "Person", type: "text", required: true, placeholder: "Contact person" },
     ],
   },
   b: {
@@ -86,14 +119,32 @@ export default function TypeForm() {
   const [formData, setFormData] = useState<Record<string, string>>(() => {
     const now = new Date(Date.now() + 4 * 60 * 60 * 1000);
     const today = now.toISOString().split("T")[0];
-    return { invoiceDate: today, currency: "USD", bank: "tbc", bankCurrency: "GEL" };
+    return { invoiceDate: today, orderDate: today, currency: "USD", bank: "tbc", bankCurrency: "GEL" };
   });
   const [serviceItems, setServiceItems] = useState<ServiceItem[]>([{ description: "", amount: "" }]);
+  const [servicePriceItems, setServicePriceItems] = useState<ServicePriceItem[]>([{ description: "", amount: "", currency: "USD" }]);
   const [transportUnits, setTransportUnits] = useState<string[]>([""]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+
+  useEffect(() => {
+    if (type === "b" || type === "a") {
+      fetch(`/api/next-invoice?type=${type}`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data.nextNumber) {
+            if (type === "b") {
+              setFormData((prev) => ({ ...prev, invoiceNo: data.nextNumber }));
+            } else {
+              setFormData((prev) => ({ ...prev, order: data.nextNumber }));
+            }
+          }
+        })
+        .catch(() => {});
+    }
+  }, [type]);
 
   const handleChange = (name: string, value: string) => {
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -106,6 +157,10 @@ export default function TypeForm() {
 
     try {
       const submitData = { ...formData };
+      if (type === "a") {
+        const validPrices = servicePriceItems.filter(item => item.description && item.amount);
+        submitData.servicePriceItems = JSON.stringify(validPrices);
+      }
       if (type === "b") {
         const validItems = serviceItems.filter(item => item.description && item.amount);
         submitData.serviceItems = JSON.stringify(validItems);
@@ -181,6 +236,13 @@ export default function TypeForm() {
 
             <form onSubmit={handleSubmit} className="space-y-5">
               {config.fields.map((field) => (
+                field.type === "header" ? (
+                  <div key={field.name} className="pt-4 pb-1 border-t border-white/10">
+                    <h3 className="text-lg font-bold text-white" style={{ fontFamily: "var(--font-dachi)" }}>
+                      {field.label}
+                    </h3>
+                  </div>
+                ) :
                 field.name === "_transportUnits" && type === "b" ? (
                   <div key={field.name}>
                     <label className="block text-sm font-medium text-white/70 mb-2" style={{ fontFamily: "var(--font-dachi)" }}>
@@ -219,6 +281,97 @@ export default function TypeForm() {
                       <button
                         type="button"
                         onClick={() => setTransportUnits([...transportUnits, ""])}
+                        className="mt-2 text-sm text-emerald-400/70 hover:text-emerald-400 transition-colors flex items-center gap-1"
+                        style={{ fontFamily: "var(--font-dachi)" }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        დამატება
+                      </button>
+                    )}
+                  </div>
+                ) :
+                field.name === "_servicePrices" && type === "a" ? (
+                  <div key={field.name}>
+                    <label className="block text-sm font-medium text-white/70 mb-2" style={{ fontFamily: "var(--font-dachi)" }}>
+                      Service Price
+                    </label>
+                    <div className="space-y-3">
+                      {servicePriceItems.map((item, index) => (
+                        <div key={index} className="space-y-2 p-3 rounded-lg border border-white/10" style={{ backgroundColor: "rgba(255,255,255,0.03)" }}>
+                          {/* Currency selector per item */}
+                          <div className="flex gap-1.5">
+                            {["USD", "EUR", "GEL"].map((cur) => (
+                              <button
+                                key={cur}
+                                type="button"
+                                onClick={() => {
+                                  const updated = [...servicePriceItems];
+                                  updated[index] = { ...updated[index], currency: cur };
+                                  setServicePriceItems(updated);
+                                }}
+                                className={`flex-1 py-1.5 rounded-md border text-xs font-medium transition-all ${
+                                  item.currency === cur
+                                    ? "border-emerald-400 bg-emerald-400/20 text-emerald-400"
+                                    : "border-white/10 text-white/40 hover:border-white/30"
+                                }`}
+                                style={item.currency !== cur ? { backgroundColor: "rgba(255,255,255,0.04)" } : {}}
+                              >
+                                {cur === "USD" ? "$ USD" : cur === "EUR" ? "€ EUR" : "₾ GEL"}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            <input
+                              type="text"
+                              value={item.description}
+                              onChange={(e) => {
+                                const updated = [...servicePriceItems];
+                                updated[index] = { ...updated[index], description: e.target.value };
+                                setServicePriceItems(updated);
+                              }}
+                              className="flex-1 px-4 py-2.5 rounded-lg outline-none transition-all text-white placeholder-white/30 border border-white/10 focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20"
+                              style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                              placeholder="Service description"
+                            />
+                            <div
+                              className="flex items-center w-36 rounded-lg border border-white/10 focus-within:border-emerald-400/40 focus-within:ring-2 focus-within:ring-emerald-400/20 transition-all"
+                              style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                            >
+                              <span className="pl-3 text-white/70 font-medium select-none">{item.currency === "GEL" ? "₾" : item.currency === "EUR" ? "€" : "$"}</span>
+                              <input
+                                type="text"
+                                inputMode="decimal"
+                                value={item.amount}
+                                onChange={(e) => {
+                                  const updated = [...servicePriceItems];
+                                  updated[index] = { ...updated[index], amount: e.target.value };
+                                  setServicePriceItems(updated);
+                                }}
+                                className="flex-1 px-2 py-2.5 rounded-r-lg outline-none text-white placeholder-white/30 bg-transparent w-full"
+                                placeholder="0.00"
+                              />
+                          </div>
+                            {servicePriceItems.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => setServicePriceItems(servicePriceItems.filter((_, i) => i !== index))}
+                                className="text-red-400/60 hover:text-red-400 transition-colors p-1"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                                </svg>
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {servicePriceItems.length < 3 && (
+                      <button
+                        type="button"
+                        onClick={() => setServicePriceItems([...servicePriceItems, { description: "", amount: "", currency: "USD" }])}
                         className="mt-2 text-sm text-emerald-400/70 hover:text-emerald-400 transition-colors flex items-center gap-1"
                         style={{ fontFamily: "var(--font-dachi)" }}
                       >
@@ -371,6 +524,55 @@ export default function TypeForm() {
                         </>
                       )}
                     </div>
+                  ) : field.type === "transportMode" ? (
+                    <div className="flex gap-2">
+                      {["Road", "Air", "Sea", "Rail"].map((mode) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => handleChange("transportMode", mode)}
+                          className={`flex-1 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                            formData.transportMode === mode
+                              ? "border-emerald-400 bg-emerald-400/20 text-emerald-400"
+                              : "border-white/10 text-white/50 hover:border-white/30"
+                          }`}
+                          style={formData.transportMode !== mode ? { backgroundColor: "rgba(255,255,255,0.06)" } : {}}
+                        >
+                          {mode}
+                        </button>
+                      ))}
+                    </div>
+                  ) : field.type === "insuranceStatus" ? (
+                    <div className="flex gap-2">
+                      {[{ value: "Ensured", label: "Ensured" }, { value: "Not Ensured", label: "Not Ensured" }].map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => handleChange("insuranceStatus", opt.value)}
+                          className={`flex-1 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                            formData.insuranceStatus === opt.value
+                              ? "border-emerald-400 bg-emerald-400/20 text-emerald-400"
+                              : "border-white/10 text-white/50 hover:border-white/30"
+                          }`}
+                          style={formData.insuranceStatus !== opt.value ? { backgroundColor: "rgba(255,255,255,0.06)" } : {}}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  ) : field.type === "paymentTerms" ? (
+                    <select
+                      required={field.required}
+                      value={formData.paymentTerms || ""}
+                      onChange={(e) => handleChange("paymentTerms", e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-lg outline-none transition-all text-white border border-white/10 focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20 appearance-none"
+                      style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                    >
+                      <option value="" disabled>Select payment terms</option>
+                      {PAYMENT_TERMS.map((term) => (
+                        <option key={term} value={term} style={{ backgroundColor: "#1f2023" }}>{term}</option>
+                      ))}
+                    </select>
                   ) : field.type === "currency" ? (
                     <div className="space-y-2">
                       <div className="flex gap-2">
@@ -458,7 +660,7 @@ export default function TypeForm() {
                     <iframe
                       src={previewUrl}
                       className="w-full border-0"
-                      style={{ height: "60vh", minHeight: "400px" }}
+                      style={{ height: "calc(100vh - 120px)" }}
                       title="PDF Preview"
                     />
                   </div>

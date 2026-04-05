@@ -3,6 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Audiowide&display=swap');
+
+    @font-face {
+      font-family: "Montserrat";
+      src: url(data:font/woff2;base64,{{montserratBase64}}) format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+    }
+
     @page {
       size: A4;
       margin: 0;
@@ -16,105 +25,619 @@
 
     body {
       width: 210mm;
-      min-height: 297mm;
-      font-family: Arial, Helvetica, sans-serif;
+      height: 297mm;
+      font-family: "Montserrat", sans-serif;
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
       color: #1a1a1a;
+      position: relative;
     }
 
     .page {
       width: 210mm;
-      min-height: 297mm;
-      padding: 40px 50px;
+      height: 297mm;
       position: relative;
+      overflow: hidden;
     }
 
+    /* Header */
     .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 3px solid #2563eb;
-      padding-bottom: 20px;
-      margin-bottom: 40px;
+      position: relative;
+      width: 100%;
     }
 
-    .header h1 {
+    .header-img {
+      width: 100%;
+      display: block;
+    }
+
+    .header-title-block {
+      position: absolute;
+      top: 18px;
+      right: 40px;
+      text-align: right;
+      z-index: 2;
+    }
+
+    .header-title {
+      font-family: "Audiowide", sans-serif;
       font-size: 28px;
-      color: #2563eb;
-      font-weight: 700;
-    }
-
-    .header .badge {
-      background: #2563eb;
+      font-weight: 900;
       color: white;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 1px;
+      letter-spacing: 3px;
       text-transform: uppercase;
     }
 
-    .content {
+    .order-info {
+      font-family: "Audiowide", sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      margin-top: 8px;
+    }
+
+    .order-info .label {
+      color: white;
+      font-size: 12px;
+    }
+
+    .order-info .value {
+      color: #2ff9c3;
+      font-weight: 900;
+    }
+
+    .order-date {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 6px;
+      font-family: "Audiowide", sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: white;
+      margin-top: 6px;
+    }
+
+    .order-date .date-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* Header contact bar */
+    .header-contact {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
       margin-top: 30px;
     }
 
-    .field-group {
-      margin-bottom: 24px;
+    .header-contact-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #2ff9c3;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .header-contact-item svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: #2ff9c3;
+      stroke-width: 1.5;
+    }
+
+    .header-contact-item span {
+      color: rgba(255,255,255,0.8);
+      font-size: 11px;
+    }
+
+    /* Transport Mode */
+    .transport-mode {
+      position: absolute;
+      bottom: 110px;
+      left: 40px;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .transport-mode-title {
+      font-family: "Audiowide", sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: white;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .transport-icons {
+      display: flex;
+      align-items: flex-end;
+      gap: 20px;
+    }
+
+    .transport-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      opacity: 0.3;
+    }
+
+    .transport-item.active {
+      opacity: 1;
+    }
+
+    .transport-item img.transport-icon {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+
+    .transport-item img.check-icon {
+      width: 14px;
+      height: 14px;
+    }
+
+    /* Content */
+    .content {
+      padding: 16px 40px 0;
+      margin-top: -60px;
+    }
+
+    /* Section title */
+    .section-title {
+      font-family: "Audiowide", sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #284c3c;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #284c3c;
+      margin-bottom: 12px;
+    }
+
+    /* Two-column grid */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 32px;
+      margin-bottom: 16px;
+    }
+
+    .field {
+      padding: 6px 0;
     }
 
     .field-label {
-      font-size: 11px;
+      font-size: 9px;
       text-transform: uppercase;
       letter-spacing: 1px;
-      color: #6b7280;
-      margin-bottom: 6px;
+      color: #999;
       font-weight: 600;
+      margin-bottom: 3px;
     }
 
     .field-value {
-      font-size: 16px;
+      font-size: 13px;
       color: #1a1a1a;
-      line-height: 1.6;
+      font-weight: 600;
+      line-height: 1.5;
     }
 
-    .footer {
+    .field-full {
+      grid-column: 1 / -1;
+      padding: 6px 0;
+    }
+
+    /* Status badge */
+    .badge {
+      display: inline-block;
+      padding: 3px 14px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-green {
+      background-color: #e6f7ef;
+      color: #1a7a4c;
+    }
+
+    .badge-red {
+      background-color: #fde8e8;
+      color: #b91c1c;
+    }
+
+    /* Service Price table */
+    .sp-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 16px;
+    }
+
+    .sp-table th {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #999;
+      font-weight: 600;
+      text-align: left;
+      padding: 6px 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    .sp-table th:last-child {
+      text-align: right;
+    }
+
+    .sp-table td {
+      padding: 7px 0;
+      font-size: 13px;
+      font-weight: 500;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .sp-table td:last-child {
+      text-align: right;
+      font-weight: 700;
+    }
+
+    /* Payment terms box */
+    .payment-box {
+      background-color: #f7f8fa;
+      border-left: 3px solid #284c3c;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .payment-box .field-label {
+      margin-bottom: 4px;
+    }
+
+    .payment-box .field-value {
+      font-size: 12px;
+    }
+
+    /* Signatures row */
+    .signatures-row {
       position: absolute;
-      bottom: 30px;
-      left: 50px;
-      right: 50px;
-      border-top: 1px solid #e5e7eb;
-      padding-top: 15px;
-      font-size: 10px;
-      color: #9ca3af;
+      bottom: 90px;
+      left: 40px;
+      right: 40px;
       display: flex;
       justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .signature-block {
+      text-align: center;
+      width: 220px;
+    }
+
+    .signature-line {
+      width: 100%;
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 8px;
+    }
+
+    .signature-block-label {
+      font-family: "Audiowide", sans-serif;
+      font-size: 8px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #999;
+      margin-bottom: 4px;
+    }
+
+    .signature-name {
+      font-size: 13px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .signature-title {
+      font-size: 10px;
+      font-weight: 500;
+      color: #555;
+      margin-top: 2px;
+    }
+
+    .signature-stamp {
+      width: 140px;
+      height: auto;
+      margin: 0 auto -20px;
+      display: block;
+    }
+
+    /* Page 2: Terms */
+    .page-2 {
+      page-break-before: always;
+      position: relative;
+    }
+
+    .page-2::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/png;base64,{{backBase64}}");
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: 70%;
+      opacity: 0.04;
+      z-index: 0;
+    }
+
+    .terms-header {
+      width: 100%;
+      background-color: #1f2023;
+      padding: 60px 40px 45px;
+      text-align: left;
+      position: relative;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .terms-header-bg {
+      position: absolute;
+      right: -20px;
+      bottom: -10px;
+      height: 120%;
+      width: auto;
+      opacity: 0.5;
+    }
+
+    .terms-title {
+      font-family: "Audiowide", sans-serif;
+      font-size: 26px;
+      font-weight: 900;
+      color: white;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .terms-content {
+      padding: 20px 40px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .terms-list {
+      list-style: none;
+      counter-reset: terms;
+      padding: 0;
+    }
+
+    .terms-list li {
+      counter-increment: terms;
+      position: relative;
+      padding-left: 32px;
+      margin-bottom: 12px;
+      font-size: 11px;
+      line-height: 1.7;
+      color: #333;
+      font-weight: 500;
+    }
+
+    .terms-list li::before {
+      content: counter(terms) ".";
+      position: absolute;
+      left: 0;
+      font-family: "Audiowide", sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: #284c3c;
+    }
+
+    /* Footer */
+    .footer {
+      position: absolute;
+      bottom: 15px;
+      left: 0;
+      right: 0;
+    }
+
+    .footer-img {
+      width: 100%;
+      display: block;
+      margin-bottom: -1px;
     }
   </style>
 </head>
 <body>
   <div class="page">
+    <!-- Header -->
     <div class="header">
-      <h1>{{title}}</h1>
-      <span class="badge">Type A</span>
+      <img class="header-img" src="data:image/png;base64,{{headerBookBase64}}" alt="WEFORWARD" />
+      <div class="header-title-block">
+        <div class="header-title">Booking Order</div>
+        <div class="order-info">
+          <span class="label">ORDER NO: </span>
+          <span class="value">{{order}}</span>
+        </div>
+        <div class="order-date">
+          <img class="date-icon" src="data:image/png;base64,{{dateBase64}}" alt="" />
+          Order Date: {{orderDate}}
+        </div>
+        <!-- Contact icons -->
+        <div class="header-contact">
+          <div class="header-contact-item">
+            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>+995 593 18 81 98</span>
+          </div>
+          <div class="header-contact-item">
+            <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4l-10 8L2 4"/></svg>
+            <span>kakhaber@weforward.ge</span>
+          </div>
+          <div class="header-contact-item">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <span>www.weforward.ge</span>
+          </div>
+        </div>
+      </div>
+      <!-- Transportation Mode -->
+      <div class="transport-mode">
+        <div class="transport-mode-title">Transportation Mode</div>
+        <div class="transport-icons">
+          <div class="transport-item {{roadActive}}">
+            <img class="transport-icon" src="data:image/png;base64,{{roadBase64}}" alt="Road" />
+            <img class="check-icon" src="data:image/png;base64,{{checkBase64}}" alt="" style="visibility: {{roadCheck}}" />
+          </div>
+          <div class="transport-item {{seaActive}}">
+            <img class="transport-icon" src="data:image/png;base64,{{shipBase64}}" alt="Sea" />
+            <img class="check-icon" src="data:image/png;base64,{{checkBase64}}" alt="" style="visibility: {{seaCheck}}" />
+          </div>
+          <div class="transport-item {{airActive}}">
+            <img class="transport-icon" src="data:image/png;base64,{{planeBase64}}" alt="Air" />
+            <img class="check-icon" src="data:image/png;base64,{{checkBase64}}" alt="" style="visibility: {{airCheck}}" />
+          </div>
+          <div class="transport-item {{railActive}}">
+            <img class="transport-icon" src="data:image/png;base64,{{trainBase64}}" alt="Rail" />
+            <img class="check-icon" src="data:image/png;base64,{{checkBase64}}" alt="" style="visibility: {{railCheck}}" />
+          </div>
+        </div>
+      </div>
     </div>
 
+    <!-- Content -->
     <div class="content">
-      <div class="field-group">
-        <div class="field-label">Field 1</div>
-        <div class="field-value">{{field1}}</div>
+
+      <!-- Customer Information -->
+      <div class="section-title">Customer Information</div>
+      <div class="grid-2">
+        <div class="field">
+          <div class="field-label">Consignee</div>
+          <div class="field-value">{{consignee}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">VAT #</div>
+          <div class="field-value">{{vat}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Contact Person</div>
+          <div class="field-value">{{person}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Email</div>
+          <div class="field-value">{{email}}</div>
+        </div>
       </div>
 
-      <div class="field-group">
-        <div class="field-label">Field 2</div>
-        <div class="field-value">{{field2}}</div>
+      <!-- Shipment Details -->
+      <div class="section-title">Shipment Details</div>
+      <div class="grid-2">
+        <div class="field">
+          <div class="field-label">Loading Address</div>
+          <div class="field-value">{{loadingAddress}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Unloading Address</div>
+          <div class="field-value">{{unloadingAddress}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Product</div>
+          <div class="field-value">{{product}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Shipment Readiness Date</div>
+          <div class="field-value">{{shipmentReadinessDate}}</div>
+        </div>
+        <div class="field">
+          <div class="field-label">Insurance Status</div>
+          <div class="field-value">
+            <span class="badge {{insuranceBadgeClass}}">{{insuranceStatus}}</span>
+          </div>
+        </div>
       </div>
+
+      <!-- Order Details (conditional) -->
+      <div class="field-full" style="margin-bottom: 16px;">
+        <div class="field-label">Order Details</div>
+        <div class="field-value" style="font-size: 12px; font-weight: 500; color: #444;">{{orderDetails}}</div>
+      </div>
+
+      <!-- Service Price -->
+      <div class="section-title">Service Price</div>
+      <table class="sp-table">
+        <thead>
+          <tr>
+            <th>Description</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{servicePriceRows}}
+        </tbody>
+      </table>
+
+      <!-- Payment Terms -->
+      <div class="payment-box">
+        <div class="field-label">Payment Terms</div>
+        <div class="field-value">{{paymentTerms}}</div>
+      </div>
+
+    </div>
+
+    <!-- Signatures -->
+    <div class="signatures-row">
+      <!-- Customer -->
+      <div class="signature-block">
+        <div class="signature-line"></div>
+        <div class="signature-block-label">Customer Sign & Stamp</div>
+      </div>
+      <!-- Company -->
+      <div class="signature-block">
+        <img class="signature-stamp" src="data:image/png;base64,{{signBase64}}" alt="Stamp" />
+        <div class="signature-line"></div>
+        <div class="signature-name">KAKHABER KOCHIASHVILI</div>
+        <div class="signature-title">Company CEO, WEFORWARD LLC</div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <img class="footer-img" src="data:image/png;base64,{{footerBase64}}" alt="Footer" />
+    </div>
+  </div>
+
+  <!-- Page 2: Terms -->
+  <div class="page page-2">
+    <div class="terms-header">
+      <img class="terms-header-bg" src="data:image/png;base64,{{backBase64}}" alt="" />
+      <div class="terms-title">Terms & Conditions</div>
+    </div>
+
+    <div class="terms-content">
+      <ol class="terms-list">
+        <li>This Agreement shall come into force upon its signing and is valid until implementation by the parties of all obligations under this Agreement.</li>
+        <li>In case of damage, loss, destruction of the cargo or its part as a result of violation of the terms agreed by the forwarder / carrier, the forwarder / carrier is responsible to compensate to the client according to FFL insurance policy.</li>
+        <li>The Forwarder shall bear material liability for the cargo in accordance with the legislation of Georgia, applicable international conventions, and the CMR Convention. The Forwarder is obliged to ensure proper loading quality, correct distribution and placement of the cargo, proper securing of the cargo, use of appropriate fastening equipment and materials, correct weight distribution, proper indication of the number of packages, and correct stowage of the cargo. In case of damage and/or destruction of the cargo, the Forwarder shall immediately draw up a relevant written report indicating full details and notify the Client in writing by sending the report via email.</li>
+        <li>Any matters related to transportation between the Parties shall be governed by and resolved in accordance with the FIATA Rules.</li>
+        <li>The Client shall pay the Forwarder a commission based on the issued invoice, which must be paid within 3 (three) business days from the date of its submission. The invoiced amount must be paid no later than prior to the customs clearance of the cargo. In case of delayed payment, the Client shall be subject to a penalty in the amount of 1% of the payable sum for each day of delay.</li>
+        <li>A free time of 48 hours is allocated for loading and customs clearance, and an additional 48 hours for customs clearance at the place of destination and unloading. If such periods fully or partially coincide with weekends (non-working days), such days shall not be considered as free time.</li>
+        <li>After the expiration of the free 48-hour period, the vehicle detention (demurrage) fee shall amount to EUR 150 per day.</li>
+        <li>The Client shall be responsible for the accuracy of the data specified in the Annex to the Agreement (Order Form) and in the shipping documents, as well as for their compliance with applicable requirements and standards. In case of incorrect data, the Forwarder reserves the right to immediately revise the transportation cost in accordance with the actual parameters of the cargo.</li>
+        <li>In the event of cancellation of the order after the vehicle has been provided at the agreed time and place as defined in the Annex to the Agreement, the Client shall pay a penalty in the amount of EUR 500 for such cancellation.</li>
+        <li>This document, accompanied by a copy of the completed waybill (CMR/Air waybill/Bill of Loading), constitutes an act of acceptance and delivery of shipping services signed between the parties.</li>
+      </ol>
     </div>
 
     <div class="footer">
-      <span>Generated by PDF Generator</span>
-      <span>Type A Document</span>
+      <img class="footer-img" src="data:image/png;base64,{{footerBase64}}" alt="Footer" />
     </div>
   </div>
 </body>

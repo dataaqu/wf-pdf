@@ -2,7 +2,7 @@ import puppeteer from "puppeteer";
 import fs from "fs";
 import path from "path";
 
-function prepareHtml(
+export function prepareHtml(
   type: string,
   data: Record<string, string>
 ): string {
@@ -14,12 +14,25 @@ function prepareHtml(
 
   let html = fs.readFileSync(templatePath, "utf-8");
 
-  // Inject header image as base64 for type B
-  if (type === "b") {
+  // Inject header/footer images as base64
+  if (type === "a" || type === "b") {
     const headerPath = path.join(process.cwd(), "public", "logos", "header.png");
     if (fs.existsSync(headerPath)) {
       const headerBase64 = fs.readFileSync(headerPath).toString("base64");
       html = html.replaceAll("{{headerBase64}}", headerBase64);
+    }
+    const headerBookPath = path.join(process.cwd(), "public", "logos", "headerBook.png");
+    if (fs.existsSync(headerBookPath)) {
+      const headerBookBase64 = fs.readFileSync(headerBookPath).toString("base64");
+      html = html.replaceAll("{{headerBookBase64}}", headerBookBase64);
+    }
+    const icons = ["road", "ship", "plane", "train", "check"];
+    for (const icon of icons) {
+      const iconPath = path.join(process.cwd(), "public", "logos", `${icon}.png`);
+      if (fs.existsSync(iconPath)) {
+        const iconBase64 = fs.readFileSync(iconPath).toString("base64");
+        html = html.replaceAll(`{{${icon}Base64}}`, iconBase64);
+      }
     }
     const footerPath = path.join(process.cwd(), "public", "logos", "footer.png");
     if (fs.existsSync(footerPath)) {
@@ -52,6 +65,49 @@ function prepareHtml(
       const backBase64 = fs.readFileSync(backPath).toString("base64");
       html = html.replaceAll("{{backBase64}}", backBase64);
     }
+  }
+
+  if (type === "a") {
+    // Transport mode active states
+    const mode = (data.transportMode || "").toLowerCase();
+    data.roadActive = mode === "road" ? "active" : "";
+    data.seaActive = mode === "sea" ? "active" : "";
+    data.airActive = mode === "air" ? "active" : "";
+    data.railActive = mode === "rail" ? "active" : "";
+    data.roadCheck = mode === "road" ? "visible" : "hidden";
+    data.seaCheck = mode === "sea" ? "visible" : "hidden";
+    data.airCheck = mode === "air" ? "visible" : "hidden";
+    data.railCheck = mode === "rail" ? "visible" : "hidden";
+
+    // Insurance badge class
+    const insurance = (data.insuranceStatus || "").toLowerCase();
+    data.insuranceBadgeClass = insurance === "ensured" ? "badge-green" : "badge-red";
+
+    // Process service price items
+    if (data.servicePriceItems) {
+      let items: { description: string; amount: string; currency?: string }[] = [];
+      try {
+        items = JSON.parse(data.servicePriceItems);
+      } catch {
+        items = [];
+      }
+      const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+      const servicePriceRows = items.map((item) => {
+        const desc = esc(item.description);
+        const amt = parseFloat(item.amount) || 0;
+        const cur = item.currency || "USD";
+        const symbol = cur === "GEL" ? "₾" : cur === "EUR" ? "€" : "$";
+        return `<tr><td>${desc}</td><td>${symbol}${fmt(amt)}</td></tr>`;
+      }).join("");
+
+      data.servicePriceRows = servicePriceRows;
+      data.servicePriceItems = "";
+    }
+  }
+
+  if (type === "b") {
     // Auto-size company name
     const companyName = data.invoiceTo || "";
     if (companyName.length > 80) {
@@ -158,8 +214,8 @@ function prepareHtml(
 
   // Inject data into template placeholders ({{key}})
   for (const [key, value] of Object.entries(data)) {
-    // tableRows is pre-escaped HTML, inject as-is
-    if (key === "tableRows") {
+    // Pre-escaped HTML fields, inject as-is
+    if (key === "tableRows" || key === "servicePriceRows") {
       html = html.replaceAll(`{{${key}}}`, value);
       continue;
     }
