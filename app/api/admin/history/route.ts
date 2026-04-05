@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+
+function isValidDateString(value: string): boolean {
+  const date = new Date(value);
+  return !isNaN(date.getTime());
+}
 
 export async function GET(request: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -18,7 +24,7 @@ export async function GET(request: NextRequest) {
   const page = parseInt(searchParams.get("page") || "1");
   const limit = 10;
 
-  const where: Record<string, unknown> = {};
+  const where: Prisma.PdfHistoryWhereInput = {};
 
   if (userId) {
     where.userId = userId;
@@ -38,13 +44,22 @@ export async function GET(request: NextRequest) {
   }
 
   if (dateFrom || dateTo) {
-    where.createdAt = {};
-    if (dateFrom) (where.createdAt as Record<string, unknown>).gte = new Date(dateFrom);
+    const createdAtFilter: Prisma.DateTimeFilter = {};
+    if (dateFrom) {
+      if (!isValidDateString(dateFrom)) {
+        return NextResponse.json({ error: "Invalid dateFrom format" }, { status: 400 });
+      }
+      createdAtFilter.gte = new Date(dateFrom);
+    }
     if (dateTo) {
+      if (!isValidDateString(dateTo)) {
+        return NextResponse.json({ error: "Invalid dateTo format" }, { status: 400 });
+      }
       const end = new Date(dateTo);
       end.setDate(end.getDate() + 1);
-      (where.createdAt as Record<string, unknown>).lt = end;
+      createdAtFilter.lt = end;
     }
+    where.createdAt = createdAtFilter;
   }
 
   const [items, total] = await Promise.all([

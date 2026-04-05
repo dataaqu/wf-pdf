@@ -13,6 +13,11 @@ export async function GET(
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
+  // Validate ID format
+  if (!params.id || params.id.length > 50 || !/^[a-zA-Z0-9_-]+$/.test(params.id)) {
+    return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+  }
+
   const record = await prisma.pdfHistory.findUnique({
     where: { id: params.id },
   });
@@ -41,11 +46,12 @@ export async function GET(
 
   try {
     const page = await browser.newPage();
-    await page.setContent(record.htmlContent, { waitUntil: "networkidle0" });
+    await page.setContent(record.htmlContent, { waitUntil: "networkidle0", timeout: 30000 });
     const pdfBuffer = await page.pdf({
       format: "A4",
       margin: { top: "0", right: "0", bottom: "0", left: "0" },
       printBackground: true,
+      timeout: 30000,
     });
 
     return new NextResponse(new Uint8Array(pdfBuffer), {

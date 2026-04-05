@@ -246,12 +246,13 @@ export async function generatePdf(
 
   try {
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0" });
+    await page.setContent(html, { waitUntil: "networkidle0", timeout: 30000 });
 
     const pdfBuffer = await page.pdf({
       format: "A4",
       margin: { top: "0", right: "0", bottom: "0", left: "0" },
       printBackground: true,
+      timeout: 30000,
     });
 
     return Buffer.from(pdfBuffer);
