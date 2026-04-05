@@ -2,10 +2,10 @@ import puppeteer from "puppeteer";
 import fs from "fs";
 import path from "path";
 
-export async function generatePdf(
+function prepareHtml(
   type: string,
   data: Record<string, string>
-): Promise<Buffer> {
+): string {
   const templatePath = path.join(process.cwd(), "templates", `type-${type}.html`);
 
   if (!fs.existsSync(templatePath)) {
@@ -32,23 +32,65 @@ export async function generatePdf(
       const fontBase64 = fs.readFileSync(fontPath).toString("base64");
       html = html.replaceAll("{{montserratBase64}}", fontBase64);
     }
-    // Inject partner logos 1-5
-    for (let i = 1; i <= 5; i++) {
-      const logoPath = path.join(process.cwd(), "public", "logos", `${i}.png`);
-      if (fs.existsSync(logoPath)) {
-        const logoBase64 = fs.readFileSync(logoPath).toString("base64");
-        html = html.replaceAll(`{{logo${i}Base64}}`, logoBase64);
-      }
-    }
     const signPath = path.join(process.cwd(), "public", "logos", "sign.png");
     if (fs.existsSync(signPath)) {
       const signBase64 = fs.readFileSync(signPath).toString("base64");
       html = html.replaceAll("{{signBase64}}", signBase64);
     }
+    const datePath = path.join(process.cwd(), "public", "logos", "date.png");
+    if (fs.existsSync(datePath)) {
+      const dateBase64 = fs.readFileSync(datePath).toString("base64");
+      html = html.replaceAll("{{dateBase64}}", dateBase64);
+    }
+    const arrowPath = path.join(process.cwd(), "public", "logos", "arrow.png");
+    if (fs.existsSync(arrowPath)) {
+      const arrowBase64 = fs.readFileSync(arrowPath).toString("base64");
+      html = html.replaceAll("{{arrowBase64}}", arrowBase64);
+    }
+    const backPath = path.join(process.cwd(), "public", "logos", "back.png");
+    if (fs.existsSync(backPath)) {
+      const backBase64 = fs.readFileSync(backPath).toString("base64");
+      html = html.replaceAll("{{backBase64}}", backBase64);
+    }
+    // Auto-size company name
+    const companyName = data.invoiceTo || "";
+    if (companyName.length > 80) {
+      data.invoiceToClass = "very-long-text";
+    } else if (companyName.length > 40) {
+      data.invoiceToClass = "long-text";
+    } else {
+      data.invoiceToClass = "";
+    }
+
     // Prefix invoice number with WF-
     if (data.invoiceNo) {
       data.invoiceNo = `WF-${data.invoiceNo}`;
     }
+
+    // Bank details based on bank + currency selection
+    const bankDetails: Record<string, Record<string, { name: string; code: string; iban: string }>> = {
+      tbc: {
+        GEL: { name: "JSC TBC Bank", code: "TBCBGE22", iban: "GE29TB7006536070100002" },
+        USD: { name: "JSC TBC Bank", code: "TBCBGE22", iban: "GE73TB7006536170100002" },
+        EUR: { name: "JSC TBC Bank", code: "TBCBGE22", iban: "GE73TB7006536170100002" },
+      },
+      bog: {
+        GEL: { name: "JSC Bank of Georgia", code: "BAGAGE22", iban: "GE42BG0000000549779564" },
+        USD: { name: "JSC Bank of Georgia", code: "BAGAGE22", iban: "GE42BG0000000549779564" },
+        EUR: { name: "JSC Bank of Georgia", code: "BAGAGE22", iban: "GE42BG0000000549779564" },
+      },
+      halyk: {
+        GEL: { name: "JSC Halyk Bank Georgia", code: "HABGGE22XXX", iban: "GE73HB0000000016963602" },
+        USD: { name: "JSC Halyk Bank Georgia", code: "HABGGE22XXX", iban: "GE90HB0000000033533612" },
+        EUR: { name: "JSC Halyk Bank Georgia", code: "HABGGE22XXX", iban: "GE89HB0000000033553612" },
+      },
+    };
+    const selectedBank = data.bank || "tbc";
+    const selectedCurrency = data.bankCurrency || data.currency || "USD";
+    const bank = bankDetails[selectedBank]?.[selectedCurrency] || bankDetails.tbc.USD;
+    data.bankName = bank.name;
+    data.bankCode = bank.code;
+    data.bankIban = bank.iban;
   }
 
   // Process service items and compute totals for type B
@@ -67,17 +109,35 @@ export async function generatePdf(
     // Build transport unit numbers array
     const transportLines = (data.transportUnitNumbers || "").split("\n").filter((l: string) => l.trim());
 
+    // Group transport units per row: if more than item count, pair them with " / "
+    const groupedTransport: string[] = [];
+    if (transportLines.length > items.length) {
+      const perRow = Math.ceil(transportLines.length / items.length);
+      for (let i = 0; i < items.length; i++) {
+        const chunk = transportLines.slice(i * perRow, (i + 1) * perRow);
+        groupedTransport.push(chunk.join(" / "));
+      }
+    } else {
+      for (let i = 0; i < items.length; i++) {
+        groupedTransport.push(transportLines[i] || "");
+      }
+    }
+
+    const transportCompact = transportLines.length > 10;
+
     // Build table rows HTML
     const tableRows = items.map((item, i) => {
       const desc = esc(item.description);
       const rawAmt = parseFloat(item.amount) || 0;
       const isCreditNote = item.description === "Credit Note";
       const displayAmt = isCreditNote ? "-" + currencySymbol + fmt(rawAmt) : currencySymbol + fmt(rawAmt);
-      const transport = esc(transportLines[i] || "");
-      return `<tr><td>${desc}</td><td>${displayAmt}</td><td>${transport}</td></tr>`;
+      const transport = esc(groupedTransport[i] || "");
+      const transportStyle = transportCompact ? ' style="font-size:10px"' : '';
+      return `<tr><td${transportStyle}>${transport}</td><td>${desc}</td><td>${displayAmt}</td></tr>`;
     }).join("");
 
     data.tableRows = tableRows;
+    data.tableClass = items.length > 6 ? "compact" : "";
 
     const totalAmount = items.reduce((sum, i) => {
       const amt = parseFloat(i.amount) || 0;
@@ -113,6 +173,15 @@ export async function generatePdf(
 
   // Remove any remaining unfilled placeholders
   html = html.replace(/\{\{[^}]+\}\}/g, "");
+
+  return html;
+}
+
+export async function generatePdf(
+  type: string,
+  data: Record<string, string>
+): Promise<Buffer> {
+  const html = prepareHtml(type, data);
 
   const browser = await puppeteer.launch({
     headless: true,

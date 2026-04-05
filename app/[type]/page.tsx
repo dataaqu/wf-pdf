@@ -32,6 +32,14 @@ const SERVICE_OPTIONS = [
   "Insurance",
 ];
 
+const BANKS = [
+  { id: "tbc", label: "TBC Bank" },
+  { id: "bog", label: "Bank of Georgia" },
+  { id: "halyk", label: "Halyk Bank" },
+];
+
+const CURRENCIES = ["GEL", "USD", "EUR"];
+
 interface ServiceItem {
   description: string;
   amount: string;
@@ -59,7 +67,9 @@ const TYPE_CONFIG = {
       { name: "currency", label: "Currency", type: "currency", required: true },
       { name: "_services", label: "", type: "custom", required: false },
       { name: "_transportUnits", label: "", type: "custom", required: false },
-      { name: "direction", label: "Direction", type: "text", required: true, placeholder: "ITALY-PAVDORA. TBILISI-GEORGIA" },
+      { name: "routeFrom", label: "Route From", type: "text", required: true, placeholder: "ITALY-PAVDORA" },
+      { name: "routeTo", label: "Route To", type: "text", required: true, placeholder: "TBILISI-GEORGIA" },
+      { name: "bank", label: "Bank", type: "bank", required: true },
     ],
   },
 } as Record<string, { label: string; color: string; fields: { name: string; label: string; type: string; required: boolean; placeholder?: string }[] }>;
@@ -76,7 +86,7 @@ export default function TypeForm() {
   const [formData, setFormData] = useState<Record<string, string>>(() => {
     const now = new Date(Date.now() + 4 * 60 * 60 * 1000);
     const today = now.toISOString().split("T")[0];
-    return { invoiceDate: today, currency: "USD" };
+    return { invoiceDate: today, currency: "USD", bank: "tbc", bankCurrency: "GEL" };
   });
   const [serviceItems, setServiceItems] = useState<ServiceItem[]>([{ description: "", amount: "" }]);
   const [transportUnits, setTransportUnits] = useState<string[]>([""]);
@@ -138,7 +148,7 @@ export default function TypeForm() {
     const a = document.createElement("a");
     a.href = url;
     const fileName = type === "b" && formData.invoiceNo
-      ? `Invoice-WF-${formData.invoiceNo}-${formData.currency || "USD"}.pdf`
+      ? `TRANSPORTATION-INVOICE-WF${formData.invoiceNo}-${formData.currency || "USD"}.pdf`
       : `${type}-output.pdf`;
     a.download = fileName;
     document.body.appendChild(a);
@@ -148,8 +158,8 @@ export default function TypeForm() {
   }, [pdfBlob, type, formData.invoiceNo, formData.currency]);
 
   return (
-    <main className="relative min-h-screen p-8 overflow-x-hidden" style={{ backgroundColor: "#1f2023" }}>
-      <img src="/logos/back.png" alt="" className="absolute right-0 bottom-0 pointer-events-none" style={{ maxHeight: "78vh", width: "auto", overflow: "hidden" }} />
+    <main className="relative min-h-screen p-4 sm:p-8 overflow-x-hidden" style={{ backgroundColor: "#1f2023" }}>
+      <img src="/logos/back.png" alt="" className="absolute right-0 bottom-0 pointer-events-none hidden sm:block" style={{ maxHeight: "78vh", width: "auto", overflow: "hidden" }} />
       <div className="max-w-7xl mx-auto relative z-10">
         <Link
           href="/"
@@ -159,9 +169,9 @@ export default function TypeForm() {
           &larr; უკან
         </Link>
 
-        <div className="flex gap-8 items-start">
+        <div className="flex flex-col lg:flex-row gap-8 items-start">
           {/* Left side — Form */}
-          <div className="w-full max-w-md flex-shrink-0">
+          <div className="w-full lg:max-w-md flex-shrink-0">
             <h1 className="text-3xl font-bold text-white mb-2" style={{ fontFamily: "var(--font-dachi)" }}>
               {config.label} PDF
             </h1>
@@ -205,7 +215,7 @@ export default function TypeForm() {
                         </div>
                       ))}
                     </div>
-                    {transportUnits.length < 7 && (
+                    {transportUnits.length < 20 && (
                       <button
                         type="button"
                         onClick={() => setTransportUnits([...transportUnits, ""])}
@@ -277,7 +287,7 @@ export default function TypeForm() {
                         </div>
                       ))}
                     </div>
-                    {serviceItems.length < 8 && (
+                    {serviceItems.length < 10 && (
                       <button
                         type="button"
                         onClick={() => setServiceItems([...serviceItems, { description: "", amount: "" }])}
@@ -316,6 +326,50 @@ export default function TypeForm() {
                         }}
                         className="flex-1 px-1 py-2.5 rounded-r-lg outline-none text-white placeholder-white/30 bg-transparent"
                       />
+                    </div>
+                  ) : field.type === "bank" ? (
+                    <div className="space-y-3">
+                      <div className="flex gap-2">
+                        {BANKS.map((bank) => (
+                          <button
+                            key={bank.id}
+                            type="button"
+                            onClick={() => handleChange("bank", bank.id)}
+                            className={`flex-1 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                              formData.bank === bank.id
+                                ? "border-emerald-400 bg-emerald-400/20 text-emerald-400"
+                                : "border-white/10 text-white/50 hover:border-white/30"
+                            }`}
+                            style={formData.bank !== bank.id ? { backgroundColor: "rgba(255,255,255,0.06)" } : {}}
+                          >
+                            {bank.label}
+                          </button>
+                        ))}
+                      </div>
+                      {formData.bank && (
+                        <>
+                          <label className="block text-sm font-medium text-white/70" style={{ fontFamily: "var(--font-dachi)" }}>
+                            Account Currency
+                          </label>
+                          <div className="flex gap-2">
+                            {CURRENCIES.map((cur) => (
+                              <button
+                                key={cur}
+                                type="button"
+                                onClick={() => handleChange("bankCurrency", cur)}
+                                className={`flex-1 py-2.5 rounded-lg border text-sm font-medium transition-all ${
+                                  formData.bankCurrency === cur
+                                    ? "border-emerald-400 bg-emerald-400/20 text-emerald-400"
+                                    : "border-white/10 text-white/50 hover:border-white/30"
+                                }`}
+                                style={formData.bankCurrency !== cur ? { backgroundColor: "rgba(255,255,255,0.06)" } : {}}
+                              >
+                                {cur === "USD" ? "$ USD" : cur === "EUR" ? "€ EUR" : "₾ GEL"}
+                              </button>
+                            ))}
+                          </div>
+                        </>
+                      )}
                     </div>
                   ) : field.type === "currency" ? (
                     <div className="space-y-2">
@@ -386,8 +440,8 @@ export default function TypeForm() {
           </div>
 
           {/* Right side — Preview */}
-          <div className="flex-1 min-w-0">
-            <div className="sticky top-8">
+          <div className="w-full lg:flex-1 min-w-0">
+            <div className="lg:sticky lg:top-8">
               <h2 className="text-sm font-medium text-white/50 mb-3 flex items-center gap-2" style={{ fontFamily: "var(--font-dachi)" }}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
@@ -404,14 +458,15 @@ export default function TypeForm() {
                     <iframe
                       src={previewUrl}
                       className="w-full border-0"
-                      style={{ height: "70vh" }}
+                      style={{ height: "60vh", minHeight: "400px" }}
                       title="PDF Preview"
                     />
                   </div>
 
                   <button
                     onClick={handleDownload}
-                    className="w-full py-3 px-6 text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                    disabled={!pdfBlob}
+                    className="w-full py-3 px-6 text-white font-medium rounded-lg transition-all flex items-center justify-center gap-2 hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ fontFamily: "var(--font-dachi)", backgroundColor: "#307654" }}
                   >
                     <svg

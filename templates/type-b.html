@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Audiowide&display=swap');
+
     @font-face {
       font-family: "Montserrat";
       src: url(data:font/woff2;base64,{{montserratBase64}}) format('woff2');
@@ -49,52 +51,158 @@
       display: block;
     }
 
-    .header-overlay {
+    /* Header contact bar */
+    .header-contact {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-top: 60px;
+    }
+
+    .header-contact-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #2ff9c3;
+      font-size: 11px;
+      font-weight: 500;
+    }
+
+    .header-contact-item svg {
+      width: 22px;
+      height: 22px;
+      fill: none;
+      stroke: #2ff9c3;
+      stroke-width: 1.5;
+    }
+
+    .header-contact-item span {
+      color: rgba(255,255,255,0.8);
+      font-size: 11px;
+    }
+
+    /* Header info section (inside header) */
+    .header-info {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 40px;
       position: absolute;
-      top: 0;
+      bottom: 100px;
+      left: 0;
       right: 0;
-      padding: 20px 45px;
+      z-index: 2;
+    }
+
+    .header-info-left {
+      flex: 1;
+    }
+
+    .invoice-to-label {
+      font-family: "Audiowide", sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      color: #2ff9c3;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .invoice-to-company {
+      font-size: 15px;
+      font-weight: 700;
+      text-transform: uppercase;
+      line-height: 1.4;
+      max-width: 340px;
+      color: white;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      word-break: break-word;
+    }
+
+    .invoice-to-company.long-text {
+      font-size: 12px;
+    }
+
+    .invoice-to-company.very-long-text {
+      font-size: 10px;
+    }
+
+    .invoice-to-tax {
+      font-size: 14px;
+      font-weight: 700;
+      margin-top: 8px;
+      color: white;
+    }
+
+    .header-invoice-block {
+      position: absolute;
+      top: 18px;
+      right: 40px;
       text-align: right;
+      z-index: 2;
     }
 
     .invoice-title {
+      font-family: "Audiowide", sans-serif;
       font-size: 32px;
       font-weight: 900;
       color: white;
       letter-spacing: 3px;
+      text-transform: uppercase;
     }
 
-    .invoice-no-value {
-      font-size: 24px;
+    .invoice-no-row {
+      font-family: "Audiowide", sans-serif;
+      font-size: 20px;
       font-weight: 800;
-      color: white;
       margin-top: 4px;
     }
 
-    /* Content */
-    .content {
-      padding: 20px 40px;
-      flex: 1;
+    .invoice-no-label {
+      color: white;
     }
 
-    /* Date row - overlays bottom of header */
+    .invoice-no-value {
+      color: #2ff9c3;
+      font-weight: 900;
+    }
+
+    /* Date row */
     .date-row {
       display: flex;
-      gap: 30px;
-      margin-top: -90px;
-      position: relative;
-      z-index: 2;
-      padding: 0 40px;
-      margin-bottom: 16px;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 10px;
+      align-items: flex-end;
     }
 
     .date-box {
-      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: "Audiowide", sans-serif;
+      font-size: 12px;
       font-weight: 700;
+      color: white;
+    }
+
+    .date-box .date-icon {
+      width: 16px;
+      height: 16px;
     }
 
     .date-box span {
       font-weight: 400;
+      display: block;
+    }
+
+    /* Content */
+    .content {
+      padding: 6px 40px;
+      flex: 1;
     }
 
     /* Info row */
@@ -125,12 +233,13 @@
     }
 
     .invoice-table th {
+      font-family: "Audiowide", sans-serif;
       font-size: 13px;
       font-weight: 700;
       text-align: left;
       text-transform: uppercase;
       padding: 10px 12px;
-      background-color: #2d6a4f;
+      background-color: #2a2a2a;
       color: white;
       letter-spacing: 0.5px;
     }
@@ -150,16 +259,32 @@
       vertical-align: top;
     }
 
+    .invoice-table.compact th {
+      font-size: 11px;
+      padding: 7px 10px;
+    }
+
+    .invoice-table.compact td {
+      font-size: 12px;
+      padding: 5px 10px;
+    }
+
+    .invoice-table td:last-child {
+      text-align: right;
+    }
+
     .invoice-table tr:nth-child(even) td {
       background-color: #f9fafb;
     }
 
     .invoice-table .col-description {
       width: 45%;
+      padding-left: 32px !important;
     }
 
     .invoice-table .col-amount {
       width: 25%;
+      text-align: right;
     }
 
     .invoice-table .col-transport {
@@ -197,31 +322,40 @@
     }
 
     .totals-table .total-row-final td {
-      border-top: 2px solid #2d6a4f;
+      border-top: 2px solid #2a2a2a;
       padding-top: 10px;
       padding-bottom: 10px;
     }
 
     .totals-table .total-row-final .label {
+      font-family: "Audiowide", sans-serif;
       font-size: 16px;
       font-weight: 800;
-      color: #1a1a1a;
+      color: #284c3c;
     }
 
     .totals-table .total-row-final .value {
+      font-family: "Audiowide", sans-serif;
       font-size: 18px;
       font-weight: 800;
-      color: #2d6a4f;
+      color: #284c3c;
     }
 
-    /* Direction (in info row) */
-    .info-direction {
-      font-size: 16px;
-      font-weight: 700;
+    /* Route */
+    .route-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
     }
 
-    .info-direction-label {
-      font-size: 11px;
+    .route-box {
+      font-size: 12px;
+    }
+
+    .route-label {
+      font-family: "Audiowide", sans-serif;
+      font-size: 10px;
       font-weight: 600;
       text-transform: uppercase;
       color: #888;
@@ -229,16 +363,23 @@
       margin-bottom: 2px;
     }
 
-    .info-direction-value {
+    .route-value {
+      font-size: 14px;
       font-weight: 700;
       text-transform: uppercase;
+    }
+
+    .route-arrow {
+      width: 16px;
+      height: 16px;
+      margin-top: 10px;
     }
 
     /* Signature */
     .signature-area {
       position: absolute;
       right: 40px;
-      bottom: 200px;
+      bottom: 110px;
       text-align: center;
     }
 
@@ -269,7 +410,7 @@
     /* Bank info */
     .bank-info {
       position: absolute;
-      bottom: 195px;
+      bottom: 105px;
       left: 40px;
       text-align: left;
       font-size: 15px;
@@ -280,29 +421,10 @@
       margin-bottom: 2px;
     }
 
-    /* Partner logos */
-    .partner-logos {
-      position: absolute;
-      bottom: 135px;
-      left: 0;
-      right: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 20px;
-      padding: 0 40px;
-    }
-
-    .partner-logos img {
-      height: 70px;
-      width: auto;
-      object-fit: contain;
-    }
-
     /* Footer */
     .footer {
       position: absolute;
-      bottom: 0;
+      bottom: 15px;
       left: 0;
       right: 0;
     }
@@ -310,6 +432,7 @@
     .footer-img {
       width: 100%;
       display: block;
+      margin-bottom: -1px;
     }
   </style>
 </head>
@@ -318,43 +441,71 @@
     <!-- Header -->
     <div class="header">
       <img class="header-img" src="data:image/png;base64,{{headerBase64}}" alt="WEFORWARD" />
-      <div class="header-overlay">
+      <!-- Invoice block - top right -->
+      <div class="header-invoice-block">
         <div class="invoice-title">INVOICE</div>
-        <div class="invoice-no-value">{{invoiceNo}}</div>
+        <div class="invoice-no-row">
+          <span class="invoice-no-label">INVOICE NO: </span>
+          <span class="invoice-no-value">{{invoiceNo}}</span>
+        </div>
+        <div class="date-row">
+          <div class="date-box">
+            <img class="date-icon" src="data:image/png;base64,{{dateBase64}}" alt="" />
+            Invoice Date:<br><span>{{invoiceDate}}</span>
+          </div>
+          <div class="date-box">
+            <img class="date-icon" src="data:image/png;base64,{{dateBase64}}" alt="" />
+            Invoice Due Date:<br><span>{{invoiceDueDate}}</span>
+          </div>
+        </div>
+        <!-- Contact icons -->
+        <div class="header-contact">
+          <div class="header-contact-item">
+            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>+995 593 18 81 98</span>
+          </div>
+          <div class="header-contact-item">
+            <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4l-10 8L2 4"/></svg>
+            <span>kakhaber@weforward.ge</span>
+          </div>
+          <div class="header-contact-item">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <span>www.weforward.ge</span>
+          </div>
+        </div>
       </div>
-    </div>
-
-    <!-- Dates - overlapping header -->
-    <div class="date-row">
-      <div class="date-box">Invoice Date: <span>{{invoiceDate}}</span></div>
-      <div class="date-box">Invoice Due Date: <span>{{invoiceDueDate}}</span></div>
+      <!-- Invoice To - bottom left -->
+      <div class="header-info">
+        <div class="header-info-left">
+          <div class="invoice-to-label">Invoice To:</div>
+          <div class="invoice-to-company {{invoiceToClass}}">{{invoiceTo}}</div>
+          <div class="invoice-to-tax">TAX ID: {{invoiceToId}}</div>
+        </div>
+      </div>
     </div>
 
     <!-- Content -->
     <div class="content">
-      <!-- Company Info & Direction -->
-      <div class="info-row">
-        <div class="info-left">
-          <div>{{invoiceTo}}</div>
-          <div>VAT#: {{invoiceToId}}</div>
+      <!-- Route -->
+      <div class="route-row">
+        <div class="route-box">
+          <div class="route-label">From</div>
+          <div class="route-value">{{routeFrom}}</div>
         </div>
-        <div class="info-right">
-          <div>WEFORWARD LLC</div>
-          <div>ID: 202456393</div>
-        </div>
-        <div class="info-direction">
-          <div class="info-direction-label">Direction</div>
-          <div class="info-direction-value">{{direction}}</div>
+        <img class="route-arrow" src="data:image/png;base64,{{arrowBase64}}" alt="→" />
+        <div class="route-box">
+          <div class="route-label">To</div>
+          <div class="route-value">{{routeTo}}</div>
         </div>
       </div>
 
       <!-- Items Table -->
-      <table class="invoice-table">
+      <table class="invoice-table {{tableClass}}">
         <thead>
           <tr>
+            <th class="col-transport">Transport Unit Numbers</th>
             <th class="col-description">Description</th>
             <th class="col-amount">Amount</th>
-            <th class="col-transport">Transport Unit Numbers</th>
           </tr>
         </thead>
         <tbody>
@@ -384,9 +535,11 @@
 
     <!-- Bank Info -->
     <div class="bank-info">
-      <div>Bank: JSC TBC Bank</div>
-      <div>Bank Code: TBCBGE22</div>
-      <div>IBAN Number: GE29TB7006536070100002</div>
+      <div>WEFORWARD LLC</div>
+      <div>TAX ID: 202456939</div>
+      <div style="margin-top: 8px;">Bank: {{bankName}}</div>
+      <div>Bank Code: {{bankCode}}</div>
+      <div>IBAN Number: {{bankIban}}</div>
     </div>
 
     <!-- Signature -->
@@ -396,14 +549,6 @@
       <div class="signature-title">Company CEO, WEFORWARD LLC</div>
     </div>
 
-    <!-- Partner Logos -->
-    <div class="partner-logos">
-      <img src="data:image/png;base64,{{logo1Base64}}" alt="Partner 1" />
-      <img src="data:image/png;base64,{{logo2Base64}}" alt="Partner 2" />
-      <img src="data:image/png;base64,{{logo3Base64}}" alt="Partner 3" />
-      <img src="data:image/png;base64,{{logo4Base64}}" alt="Partner 4" />
-      <img src="data:image/png;base64,{{logo5Base64}}" alt="Partner 5" />
-    </div>
 
     <!-- Footer -->
     <div class="footer">

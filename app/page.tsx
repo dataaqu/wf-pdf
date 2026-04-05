@@ -2,9 +2,9 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className="relative min-h-screen flex flex-col items-center justify-start p-36 overflow-hidden" style={{ backgroundColor: "#1f2023" }}>
-      <img src="/logos/back.png" alt="" className="absolute right-0 bottom-0 pointer-events-none" style={{ maxHeight: "78vh", width: "auto" }} />
-      <h1 className="text-4xl font-bold text-white mb-4" style={{ fontFamily: "var(--font-dachi)" }}>PDF გენერატორი</h1>
+    <main className="relative min-h-screen flex flex-col items-center justify-start px-6 py-16 sm:p-36 overflow-hidden" style={{ backgroundColor: "#1f2023" }}>
+      <img src="/logos/back.png" alt="" className="absolute right-0 bottom-0 pointer-events-none hidden sm:block" style={{ maxHeight: "78vh", width: "auto" }} />
+      <h1 className="text-3xl sm:text-4xl font-bold text-white mb-4" style={{ fontFamily: "var(--font-dachi)" }}>PDF გენერატორი</h1>
       <p className="mb-12 text-center max-w-md" style={{ fontFamily: "var(--font-dachi)", color: "#307654" }}>
         აირჩიე <span  style={{ color: "#fff" }}>PDF</span>  ტიპი, შეავსე ყველა მოთხოვნილი ინფორმაცია და შემდეგ გადმოწერე
       </p>
