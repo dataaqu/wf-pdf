@@ -32,7 +32,7 @@ export default function Home() {
           </Link>
         )}
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() => signOut({ redirect: true, callbackUrl: "/login" })}
           className="p-2 rounded-lg transition-all border border-white/10 text-white/50 hover:border-red-400/40 hover:text-red-400"
           style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
           title="გასვლა"
