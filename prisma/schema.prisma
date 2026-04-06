@@ -44,4 +44,6 @@ model PdfHistory {
   @@index([userId])
   @@index([createdAt])
   @@index([invoiceNumber])
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
 }

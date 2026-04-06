@@ -9,6 +9,8 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Any authenticated user can list companies for form selection
+
   const companies = await prisma.company.findMany({
     orderBy: { name: "asc" },
   });

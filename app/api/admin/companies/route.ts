@@ -28,8 +28,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Name and Tax ID are required" }, { status: 400 });
   }
 
+  const trimmedName = name.trim().slice(0, 255);
+  const trimmedTaxId = taxId.trim().slice(0, 50);
+
   const company = await prisma.company.create({
-    data: { name: name.trim(), taxId: taxId.trim() },
+    data: { name: trimmedName, taxId: trimmedTaxId },
   });
 
   return NextResponse.json(company);
