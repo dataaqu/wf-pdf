@@ -64,6 +64,12 @@ interface ServicePriceItem {
   currency: string;
 }
 
+interface Company {
+  id: string;
+  name: string;
+  taxId: string;
+}
+
 const TYPE_CONFIG = {
   a: {
     label: "Booking Order",
@@ -82,7 +88,7 @@ const TYPE_CONFIG = {
       { name: "shipmentReadinessDate", label: "Shipment Readiness Date", type: "text", required: true, placeholder: "Enter details" },
       { name: "orderDetails", label: "Order Details", type: "textarea", required: false, placeholder: "Enter details" },
       { name: "_customerHeader", label: "Customer Information", type: "header", required: false },
-      { name: "consignee", label: "Consignee", type: "text", required: true, placeholder: "Company name" },
+      { name: "consignee", label: "Consignee", type: "companyField", required: true, placeholder: "Company name" },
       { name: "vat", label: "VAT#", type: "text", required: true, placeholder: "123456789" },
       { name: "email", label: "Email", type: "text", required: true, placeholder: "email@example.com" },
       { name: "person", label: "Person", type: "text", required: true, placeholder: "Contact person" },
@@ -95,7 +101,7 @@ const TYPE_CONFIG = {
       { name: "invoiceNo", label: "Invoice No", type: "text", required: true, placeholder: "3274" },
       { name: "invoiceDate", label: "Invoice Date", type: "date", required: true },
       { name: "invoiceDueDate", label: "Invoice Due Date", type: "date", required: true },
-      { name: "invoiceTo", label: "Invoice To", type: "text", required: true, placeholder: "Company Name" },
+      { name: "invoiceTo", label: "Invoice To", type: "companyField", required: true, placeholder: "Company Name" },
       { name: "invoiceToId", label: "VAT#", type: "text", required: true, placeholder: "123456789" },
       { name: "currency", label: "Currency", type: "currency", required: true },
       { name: "_services", label: "", type: "custom", required: false },
@@ -124,10 +130,29 @@ export default function TypeForm() {
   const [serviceItems, setServiceItems] = useState<ServiceItem[]>([{ description: "", amount: "" }]);
   const [servicePriceItems, setServicePriceItems] = useState<ServicePriceItem[]>([{ description: "", amount: "", currency: "USD" }]);
   const [transportUnits, setTransportUnits] = useState<string[]>([""]);
+  const [companies, setCompanies] = useState<Company[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+
+  useEffect(() => {
+    fetch("/api/companies")
+      .then((r) => { if (!r.ok) throw new Error(); return r.json(); })
+      .then((data) => { if (Array.isArray(data)) setCompanies(data); })
+      .catch(() => {});
+  }, []);
+
+  const handleCompanySelect = (companyId: string) => {
+    const company = companies.find((c) => c.id === companyId);
+    if (company) {
+      if (type === "b") {
+        setFormData((prev) => ({ ...prev, invoiceTo: company.name, invoiceToId: company.taxId }));
+      } else if (type === "a") {
+        setFormData((prev) => ({ ...prev, consignee: company.name, vat: company.taxId }));
+      }
+    }
+  };
 
   useEffect(() => {
     if (type === "b" || type === "a") {
@@ -241,6 +266,38 @@ export default function TypeForm() {
                     <h3 className="text-lg font-bold text-white" style={{ fontFamily: "var(--font-dachi)" }}>
                       {field.label}
                     </h3>
+                  </div>
+                ) :
+                field.type === "companyField" ? (
+                  <div key={field.name}>
+                    <label className="block text-sm font-medium text-white/70 mb-1" style={{ fontFamily: "var(--font-dachi)" }}>
+                      {field.label}
+                      {field.required && <span className="text-emerald-400 ml-1">*</span>}
+                    </label>
+                    {companies.length > 0 && (
+                      <select
+                        value=""
+                        onChange={(e) => handleCompanySelect(e.target.value)}
+                        className="w-full px-4 py-2.5 rounded-lg outline-none transition-all text-white border border-white/10 focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20 appearance-none mb-2"
+                        style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                      >
+                        <option value="" disabled>აირჩიე კომპანია</option>
+                        {companies.map((c) => (
+                          <option key={c.id} value={c.id} style={{ backgroundColor: "#1f2023" }}>
+                            {c.name} — {c.taxId}
+                          </option>
+                        ))}
+                      </select>
+                    )}
+                    <input
+                      type="text"
+                      required={field.required}
+                      value={formData[field.name] || ""}
+                      onChange={(e) => handleChange(field.name, e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-lg outline-none transition-all text-white placeholder-white/30 border border-white/10 focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20"
+                      style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                      placeholder={field.placeholder || ""}
+                    />
                   </div>
                 ) :
                 field.name === "_transportUnits" && type === "b" ? (

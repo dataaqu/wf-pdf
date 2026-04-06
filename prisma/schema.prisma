@@ -23,6 +23,13 @@ model User {
   pdfHistories PdfHistory[]
 }
 
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  taxId     String
+  createdAt DateTime @default(now())
+}
+
 model PdfHistory {
   id            String   @id @default(cuid())
   userId        String

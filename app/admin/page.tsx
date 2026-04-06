@@ -30,6 +30,13 @@ interface HistoryResponse {
   page: number;
 }
 
+interface Company {
+  id: string;
+  name: string;
+  taxId: string;
+  createdAt: string;
+}
+
 export default function AdminPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -43,6 +50,47 @@ export default function AdminPage() {
   const [users, setUsers] = useState<UserInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [previewId, setPreviewId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"history" | "companies">("history");
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [newCompanyName, setNewCompanyName] = useState("");
+  const [newCompanyTaxId, setNewCompanyTaxId] = useState("");
+  const [companyLoading, setCompanyLoading] = useState(false);
+
+  const fetchCompanies = useCallback(async () => {
+    const res = await fetch("/api/admin/companies");
+    if (res.ok) {
+      const json = await res.json();
+      setCompanies(json);
+    }
+  }, []);
+
+  const addCompany = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCompanyName.trim() || !newCompanyTaxId.trim()) return;
+    setCompanyLoading(true);
+    const res = await fetch("/api/admin/companies", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: newCompanyName.trim(), taxId: newCompanyTaxId.trim() }),
+    });
+    if (res.ok) {
+      setNewCompanyName("");
+      setNewCompanyTaxId("");
+      fetchCompanies();
+    }
+    setCompanyLoading(false);
+  };
+
+  const deleteCompany = async (id: string) => {
+    const res = await fetch("/api/admin/companies", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      fetchCompanies();
+    }
+  };
 
   useEffect(() => {
     if (status === "authenticated" && session?.user?.role !== "ADMIN") {
@@ -72,8 +120,9 @@ export default function AdminPage() {
   useEffect(() => {
     if (status === "authenticated" && session?.user?.role === "ADMIN") {
       fetchHistory();
+      fetchCompanies();
     }
-  }, [status, session, fetchHistory]);
+  }, [status, session, fetchHistory, fetchCompanies]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -126,6 +175,110 @@ export default function AdminPage() {
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="flex gap-2 mb-6" style={{ fontFamily: "var(--font-dachi)" }}>
+          <button
+            onClick={() => setActiveTab("history")}
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              activeTab === "history"
+                ? "border border-emerald-400 bg-emerald-400/20 text-emerald-400"
+                : "border border-white/10 text-white/50 hover:border-white/30"
+            }`}
+            style={activeTab !== "history" ? { backgroundColor: "rgba(255,255,255,0.06)" } : {}}
+          >
+            ისტორია
+          </button>
+          <button
+            onClick={() => setActiveTab("companies")}
+            className={`px-5 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              activeTab === "companies"
+                ? "border border-emerald-400 bg-emerald-400/20 text-emerald-400"
+                : "border border-white/10 text-white/50 hover:border-white/30"
+            }`}
+            style={activeTab !== "companies" ? { backgroundColor: "rgba(255,255,255,0.06)" } : {}}
+          >
+            კომპანიები
+          </button>
+        </div>
+
+        {activeTab === "companies" ? (
+          <div>
+            {/* Add company form */}
+            <form onSubmit={addCompany} className="flex flex-col sm:flex-row gap-3 mb-6">
+              <input
+                type="text"
+                value={newCompanyName}
+                onChange={(e) => setNewCompanyName(e.target.value)}
+                placeholder="კომპანიის სახელი"
+                className="flex-1 px-4 py-2.5 rounded-lg outline-none transition-all text-white placeholder-white/30 border border-white/10 focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20"
+                style={{ backgroundColor: "rgba(255,255,255,0.06)", fontFamily: "var(--font-dachi)" }}
+                required
+              />
+              <input
+                type="text"
+                value={newCompanyTaxId}
+                onChange={(e) => setNewCompanyTaxId(e.target.value)}
+                placeholder="Tax ID"
+                className="sm:w-48 px-4 py-2.5 rounded-lg outline-none transition-all text-white placeholder-white/30 border border-white/10 focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20"
+                style={{ backgroundColor: "rgba(255,255,255,0.06)", fontFamily: "var(--font-dachi)" }}
+                required
+              />
+              <button
+                type="submit"
+                disabled={companyLoading}
+                className="px-6 py-2.5 text-white font-medium rounded-lg transition-all hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] disabled:opacity-50"
+                style={{ fontFamily: "var(--font-dachi)", backgroundColor: "#307654" }}
+              >
+                {companyLoading ? "..." : "დამატება"}
+              </button>
+            </form>
+
+            {/* Companies list */}
+            {companies.length > 0 ? (
+              <div
+                className="rounded-xl border border-white/10 overflow-hidden backdrop-blur-md"
+                style={{ background: "rgba(255,255,255,0.03)" }}
+              >
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm text-left">
+                    <thead>
+                      <tr className="border-b border-white/10">
+                        <th className="px-4 py-3 text-white/50 font-medium" style={{ fontFamily: "var(--font-dachi)" }}>სახელი</th>
+                        <th className="px-4 py-3 text-white/50 font-medium" style={{ fontFamily: "var(--font-dachi)" }}>Tax ID</th>
+                        <th className="px-4 py-3 text-white/50 font-medium" style={{ fontFamily: "var(--font-dachi)" }}>მოქმედება</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {companies.map((company) => (
+                        <tr key={company.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                          <td className="px-4 py-3 text-white/70">{company.name}</td>
+                          <td className="px-4 py-3 text-white/70 font-mono text-xs">{company.taxId}</td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => deleteCompany(company.id)}
+                              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-red-400/30 text-red-400/70 hover:border-red-400 hover:text-red-400"
+                              style={{ backgroundColor: "rgba(255,255,255,0.06)", fontFamily: "var(--font-dachi)" }}
+                            >
+                              წაშლა
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ) : (
+              <div
+                className="text-center py-20 text-white/30"
+                style={{ fontFamily: "var(--font-dachi)" }}
+              >
+                კომპანიები არ არის დამატებული
+              </div>
+            )}
+          </div>
+        ) : (
+        <>
         {/* Type filter */}
         <div className="flex gap-2 mb-4" style={{ fontFamily: "var(--font-dachi)" }}>
           {[
@@ -347,6 +500,8 @@ export default function AdminPage() {
           >
             ისტორია ცარიელია
           </div>
+        )}
+        </>
         )}
       </div>
     </main>
