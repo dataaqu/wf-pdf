@@ -100,7 +100,7 @@
     }
 
     .invoice-to-label {
-      font-family: "Audiowide", sans-serif;
+      font-family: "Montserrat", sans-serif;
       font-size: 14px;
       font-weight: 800;
       color: #2ff9c3;
@@ -173,30 +173,42 @@
     /* Date row */
     .date-row {
       display: flex;
-      flex-direction: column;
-      gap: 6px;
+      flex-direction: row;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0;
       margin-top: 10px;
-      align-items: flex-end;
+    }
+
+    .date-row .date-icon {
+      width: 28px;
+      height: 28px;
+      margin-right: 10px;
+      flex-shrink: 0;
     }
 
     .date-box {
       display: flex;
-      align-items: center;
-      gap: 6px;
-      font-family: "Audiowide", sans-serif;
-      font-size: 12px;
+      flex-direction: column;
+      font-family: "Montserrat", sans-serif;
+      font-size: 11px;
       font-weight: 700;
       color: white;
     }
 
-    .date-box .date-icon {
-      width: 16px;
-      height: 16px;
-    }
-
     .date-box span {
       font-weight: 400;
-      display: block;
+      color: #32ffcf;
+      font-size: 13px;
+      margin-top: 2px;
+    }
+
+    .date-divider {
+      width: 1px;
+      height: 32px;
+      background: rgba(255,255,255,0.3);
+      margin: 0 14px;
+      flex-shrink: 0;
     }
 
     /* Content */
@@ -233,7 +245,7 @@
     }
 
     .invoice-table th {
-      font-family: "Audiowide", sans-serif;
+      font-family: "Montserrat", sans-serif;
       font-size: 13px;
       font-weight: 700;
       text-align: left;
@@ -254,6 +266,7 @@
 
     .invoice-table td {
       font-size: 14px;
+      font-weight: 400;
       padding: 8px 12px;
       border-bottom: 1px solid #e5e7eb;
       vertical-align: top;
@@ -328,14 +341,14 @@
     }
 
     .totals-table .total-row-final .label {
-      font-family: "Audiowide", sans-serif;
+      font-family: "Montserrat", sans-serif;
       font-size: 16px;
       font-weight: 800;
       color: #284c3c;
     }
 
     .totals-table .total-row-final .value {
-      font-family: "Audiowide", sans-serif;
+      font-family: "Montserrat", sans-serif;
       font-size: 18px;
       font-weight: 800;
       color: #284c3c;
@@ -354,7 +367,7 @@
     }
 
     .route-label {
-      font-family: "Audiowide", sans-serif;
+      font-family: "Montserrat", sans-serif;
       font-size: 10px;
       font-weight: 600;
       text-transform: uppercase;
@@ -449,13 +462,13 @@
           <span class="invoice-no-value">{{invoiceNo}}</span>
         </div>
         <div class="date-row">
+          <img class="date-icon" src="data:image/png;base64,{{dateBase64}}" alt="" />
           <div class="date-box">
-            <img class="date-icon" src="data:image/png;base64,{{dateBase64}}" alt="" />
-            Invoice Date:<br><span>{{invoiceDate}}</span>
+            Invoice Date:<span>{{invoiceDate}}</span>
           </div>
+          <div class="date-divider"></div>
           <div class="date-box">
-            <img class="date-icon" src="data:image/png;base64,{{dateBase64}}" alt="" />
-            Invoice Due Date:<br><span>{{invoiceDueDate}}</span>
+            Invoice Due Date:<span>{{invoiceDueDate}}</span>
           </div>
         </div>
         <!-- Contact icons -->
@@ -516,14 +529,6 @@
       <!-- Totals -->
       <div class="totals-section">
         <table class="totals-table">
-          <tr>
-            <td class="label">Subtotal</td>
-            <td class="value">{{subtotal}}</td>
-          </tr>
-          <tr>
-            <td class="label">VAT ({{vatDisplay}})</td>
-            <td class="value">{{vatAmount}}</td>
-          </tr>
           <tr class="total-row-final">
             <td class="label">Total</td>
             <td class="value">{{totalPrice}}</td>

@@ -123,6 +123,15 @@ export function prepareHtml(
       data.invoiceNo = `WF-${data.invoiceNo}`;
     }
 
+    // Format dates to DD.MM.YYYY
+    const formatDate = (d: string) => {
+      const parts = d.split("-");
+      if (parts.length === 3) return `${parts[2]}.${parts[1]}.${parts[0]}`;
+      return d;
+    };
+    if (data.invoiceDate) data.invoiceDate = formatDate(data.invoiceDate);
+    if (data.invoiceDueDate) data.invoiceDueDate = formatDate(data.invoiceDueDate);
+
     // Bank details based on bank + currency selection
     const bankDetails: Record<string, Record<string, { name: string; code: string; iban: string }>> = {
       tbc: {
@@ -234,11 +243,8 @@ export function prepareHtml(
 }
 
 export async function generatePdf(
-  type: string,
-  data: Record<string, string>
+  html: string
 ): Promise<Buffer> {
-  const html = prepareHtml(type, data);
-
   const browser = await puppeteer.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],

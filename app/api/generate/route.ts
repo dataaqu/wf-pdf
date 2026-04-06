@@ -95,12 +95,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: validationError }, { status: 400 });
     }
 
-    // Prepare HTML for storage (before generatePdf mutates data)
-    const dataCopy = JSON.parse(JSON.stringify(data));
-    const html = prepareHtml(type, dataCopy);
+    // Prepare HTML
+    const html = prepareHtml(type, data);
 
-    // Generate PDF
-    const pdfBuffer = await generatePdf(type, data);
+    // Generate PDF from prepared HTML
+    const pdfBuffer = await generatePdf(html);
 
     // Build file name and extract invoice/order number
     let invoiceNumber: string | null = null;
@@ -109,9 +108,9 @@ export async function POST(request: NextRequest) {
     if (type === "b" && data.invoiceNo) {
       invoiceNumber = data.invoiceNo; // already has WF- prefix after prepareHtml
       fileName = `TRANSPORTATION-INVOICE-${data.invoiceNo}-${data.currency || "USD"}.pdf`;
-    } else if (type === "a" && dataCopy.order) {
-      invoiceNumber = `#${dataCopy.order}`;
-      fileName = `BOOKING-ORDER-${dataCopy.order}.pdf`;
+    } else if (type === "a" && data.order) {
+      invoiceNumber = `#${data.order}`;
+      fileName = `BOOKING-ORDER-${data.order}.pdf`;
     }
 
     // Save to history
