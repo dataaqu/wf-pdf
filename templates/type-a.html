@@ -3,7 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Audiowide&display=swap');
+    @font-face {
+      font-family: "Audiowide";
+      src: url(data:font/woff2;base64,{{audiowideBase64}}) format('woff2');
+      font-weight: 400;
+      font-style: normal;
+    }
 
     @font-face {
       font-family: "Montserrat";
@@ -93,7 +98,7 @@
       gap: 6px;
       font-family: "Montserrat", sans-serif;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 300;
       color: white;
       margin-top: 6px;
     }
@@ -103,37 +108,6 @@
       height: 16px;
     }
 
-    /* Header contact bar */
-    .header-contact {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      margin-top: 30px;
-    }
-
-    .header-contact-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 4px;
-      color: #2ff9c3;
-      font-size: 11px;
-      font-weight: 500;
-    }
-
-    .header-contact-item svg {
-      width: 22px;
-      height: 22px;
-      fill: none;
-      stroke: #2ff9c3;
-      stroke-width: 1.5;
-    }
-
-    .header-contact-item span {
-      color: rgba(255,255,255,0.8);
-      font-size: 11px;
-    }
 
     /* Transport Mode */
     .transport-mode {
@@ -150,7 +124,7 @@
     .transport-mode-title {
       font-family: "Montserrat", sans-serif;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 300;
       color: white;
       text-transform: uppercase;
       letter-spacing: 1px;
@@ -193,9 +167,9 @@
 
     /* Section title */
     .section-title {
-      font-family: "Montserrat", sans-serif;
+      font-family: "Audiowide", sans-serif;
       font-size: 12px;
-      font-weight: 700;
+      font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 1.5px;
       color: #284c3c;
@@ -221,14 +195,14 @@
       text-transform: uppercase;
       letter-spacing: 1px;
       color: #999;
-      font-weight: 600;
+      font-weight: 400;
       margin-bottom: 3px;
     }
 
     .field-value {
       font-size: 13px;
       color: #1a1a1a;
-      font-weight: 600;
+      font-weight: 400;
       line-height: 1.5;
     }
 
@@ -243,7 +217,7 @@
       padding: 3px 14px;
       border-radius: 20px;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 400;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
@@ -270,7 +244,7 @@
       text-transform: uppercase;
       letter-spacing: 1px;
       color: #999;
-      font-weight: 600;
+      font-weight: 400;
       text-align: left;
       padding: 6px 0;
       border-bottom: 1px solid #e5e7eb;
@@ -283,13 +257,13 @@
     .sp-table td {
       padding: 7px 0;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 400;
       border-bottom: 1px solid #f0f0f0;
     }
 
     .sp-table td:last-child {
       text-align: right;
-      font-weight: 700;
+      font-weight: 400;
     }
 
     /* Payment terms box */
@@ -307,6 +281,7 @@
 
     .payment-box .field-value {
       font-size: 12px;
+      font-weight: 400;
     }
 
     /* Signatures row */
@@ -342,14 +317,14 @@
 
     .signature-name {
       font-size: 13px;
-      font-weight: 800;
+      font-weight: 500;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
 
     .signature-title {
       font-size: 10px;
-      font-weight: 500;
+      font-weight: 400;
       color: #555;
       margin-top: 2px;
     }
@@ -402,9 +377,9 @@
     }
 
     .terms-title {
-      font-family: "Montserrat", sans-serif;
+      font-family: "Audiowide", sans-serif;
       font-size: 26px;
-      font-weight: 900;
+      font-weight: 500;
       color: white;
       letter-spacing: 3px;
       text-transform: uppercase;
@@ -430,7 +405,7 @@
       font-size: 11px;
       line-height: 1.7;
       color: #333;
-      font-weight: 500;
+      font-weight: 400;
     }
 
     .terms-list li::before {
@@ -439,14 +414,14 @@
       left: 0;
       font-family: "Montserrat", sans-serif;
       font-size: 11px;
-      font-weight: 700;
+      font-weight: 500;
       color: #284c3c;
     }
 
     /* Footer */
     .footer {
       position: absolute;
-      bottom: 15px;
+      bottom: 0;
       left: 0;
       right: 0;
     }
@@ -454,7 +429,6 @@
     .footer-img {
       width: 100%;
       display: block;
-      margin-bottom: -1px;
     }
   </style>
 </head>
@@ -472,21 +446,6 @@
         <div class="order-date">
           <img class="date-icon" src="data:image/png;base64,{{dateBase64}}" alt="" />
           Order Date: {{orderDate}}
-        </div>
-        <!-- Contact icons -->
-        <div class="header-contact">
-          <div class="header-contact-item">
-            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            <span>+995 593 18 81 98</span>
-          </div>
-          <div class="header-contact-item">
-            <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M22 4l-10 8L2 4"/></svg>
-            <span>kakhaber@weforward.ge</span>
-          </div>
-          <div class="header-contact-item">
-            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-            <span>www.weforward.ge</span>
-          </div>
         </div>
       </div>
       <!-- Transportation Mode -->

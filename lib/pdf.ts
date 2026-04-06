@@ -45,6 +45,12 @@ export function prepareHtml(
       const fontBase64 = fs.readFileSync(fontPath).toString("base64");
       html = html.replaceAll("{{montserratBase64}}", fontBase64);
     }
+    // Inject Audiowide font as base64
+    const audiowideePath = path.join(process.cwd(), "public", "fonts", "Audiowide-Regular.woff2");
+    if (fs.existsSync(audiowideePath)) {
+      const audiowideeBase64 = fs.readFileSync(audiowideePath).toString("base64");
+      html = html.replaceAll("{{audiowideBase64}}", audiowideeBase64);
+    }
     const signPath = path.join(process.cwd(), "public", "logos", "sign.png");
     if (fs.existsSync(signPath)) {
       const signBase64 = fs.readFileSync(signPath).toString("base64");
@@ -258,7 +264,7 @@ export async function generatePdf(
 
   try {
     const page = await browser.newPage();
-    await page.setContent(html, { waitUntil: "networkidle0", timeout: 30000 });
+    await page.setContent(html, { waitUntil: "domcontentloaded", timeout: 30000 });
 
     const pdfBuffer = await page.pdf({
       format: "A4",
