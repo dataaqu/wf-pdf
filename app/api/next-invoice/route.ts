@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const base = raw.split("-")[0];
     const num = parseInt(base);
     if (!isNaN(num)) {
-      nextNumber = String(num + 1);
+      nextNumber = String(Math.max(num + 1, 3320));
     }
   }
 
