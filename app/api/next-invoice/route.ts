@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     select: { invoiceNumber: true },
   });
 
-  let nextNumber = "3000";
+  let nextNumber = "3320";
 
   if (latest?.invoiceNumber) {
     const raw = pdfType === "b"
