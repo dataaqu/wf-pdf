@@ -19,6 +19,7 @@ const SERVICE_OPTIONS = [
   "RWB",
   "HBL",
   "Domestic Transportation",
+  "International Transportation",
   "Custom Clearance",
   "Re-Loading",
   "Detention Fee",
