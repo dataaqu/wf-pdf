@@ -187,6 +187,18 @@
       flex-shrink: 0;
     }
 
+    .payment-notice {
+      margin-top: 10px;
+      font-family: "Montserrat", sans-serif;
+      font-size: 9.5px;
+      font-weight: 300;
+      color: rgba(255,255,255,0.85);
+      text-align: right;
+      line-height: 1.5;
+      max-width: 340px;
+      margin-left: auto;
+    }
+
     /* Content */
     .content {
       padding: 6px 40px;
@@ -463,6 +475,12 @@
           <div class="date-box">
             Invoice Due Date:<span>{{invoiceDueDate}}</span>
           </div>
+        </div>
+        <div class="payment-notice">
+          (The payment should be done with the exchange rate between foreign currency USD and GEL, fixed by the national bank for the date of payment)<br/>
+          გთხოვთ საგადახდო დავალებაში მიუთითოთ სრულად ინვოისის ნომერი.<br/>
+          Pls always indicate our invoice number in the payment order.<br/>
+          საბანკო საკომისიო გადამხდელის ხარჯზე / All bank commission to be paid by payer.
         </div>
       </div>
       <!-- Invoice To - bottom left -->
