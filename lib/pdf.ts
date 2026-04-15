@@ -172,7 +172,7 @@ export function prepareHtml(
     } catch {
       items = [];
     }
-    const vatPercent = parseFloat(data.vatPercent || "0") || 0;
+    const vatPercent = data.currency === "GEL" ? 18 : 0;
     const currencySymbol = data.currency === "GEL" ? "₾" : data.currency === "EUR" ? "€" : "$";
     const fmt = (n: number) => n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
