@@ -17,6 +17,15 @@
       font-style: normal;
     }
 
+    /* Lari symbol (₾, U+20BE) fallback - Montserrat does not contain this glyph */
+    @font-face {
+      font-family: "Montserrat";
+      src: url(data:font/woff2;base64,{{lariBase64}}) format('woff2');
+      font-weight: 100 900;
+      font-style: normal;
+      unicode-range: U+20BE;
+    }
+
     @page {
       size: A4;
       margin: 0;
@@ -477,7 +486,7 @@
           </div>
         </div>
         <div class="payment-notice">
-          <div>The payment should be done with the exchange rate between foreign currency USD and GEL, fixed by the national bank for the date of payment</div>
+          <div>The payment should be done with the exchange rate between foreign currency USD and GEL, fixed by the national bank for the date of payment.</div>
           <div style="margin-top: 5px;">Pls always indicate our invoice number in the payment order.</div>
           <div style="margin-top: 5px;">All bank commission to be paid by payer.</div>
         </div>

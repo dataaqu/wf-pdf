@@ -51,6 +51,12 @@ export function prepareHtml(
       const audiowideeBase64 = fs.readFileSync(audiowideePath).toString("base64");
       html = html.replaceAll("{{audiowideBase64}}", audiowideeBase64);
     }
+    // Inject Lari-only Noto Sans Georgian subset (Montserrat lacks U+20BE glyph)
+    const lariPath = path.join(process.cwd(), "public", "fonts", "NotoSansGeorgian-Lari.woff2");
+    if (fs.existsSync(lariPath)) {
+      const lariBase64 = fs.readFileSync(lariPath).toString("base64");
+      html = html.replaceAll("{{lariBase64}}", lariBase64);
+    }
     const signPath = path.join(process.cwd(), "public", "logos", "sign.png");
     if (fs.existsSync(signPath)) {
       const signBase64 = fs.readFileSync(signPath).toString("base64");
