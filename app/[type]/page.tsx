@@ -31,6 +31,8 @@ const SERVICE_OPTIONS = [
   "T1",
   "T2",
   "Insurance",
+  "Terminal Charge",
+  "Weighing Cost",
 ];
 
 const PAYMENT_TERMS = [
