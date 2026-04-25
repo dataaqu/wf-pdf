@@ -12,7 +12,7 @@ export default function Home() {
 
       {/* Top bar */}
       <div className="absolute top-4 left-4 right-4 sm:top-6 sm:left-8 sm:right-8 flex items-center justify-between z-20" style={{ fontFamily: "var(--font-dachi)" }}>
-        {session?.user?.role === "ADMIN" && (
+        {session?.user?.name && (
           <div className="text-white/50 text-sm">
             მოგესალმებით, <span className="text-white/80">{session?.user?.name}</span>
           </div>
@@ -29,6 +29,19 @@ export default function Home() {
               <polyline points="12 6 12 12 16 14" />
             </svg>
             ისტორიის ნახვა
+          </Link>
+        )}
+        {session?.user?.role === "USER" && (
+          <Link
+            href="/history"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all border border-white/10 text-white/70 hover:border-emerald-400/40 hover:text-emerald-400"
+            style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+            ჩემი ისტორია
           </Link>
         )}
         <button

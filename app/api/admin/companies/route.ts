@@ -3,17 +3,32 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions);
   if (!session || session.user?.role !== "ADMIN") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const companies = await prisma.company.findMany({
-    orderBy: { name: "asc" },
-  });
+  const { searchParams } = new URL(req.url);
+  const pageRaw = parseInt(searchParams.get("page") || "1", 10);
+  const page = Number.isFinite(pageRaw) && pageRaw > 0 ? Math.min(pageRaw, 10000) : 1;
+  const limit = 20;
 
-  return NextResponse.json(companies);
+  const [items, total] = await Promise.all([
+    prisma.company.findMany({
+      orderBy: { name: "asc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    prisma.company.count(),
+  ]);
+
+  return NextResponse.json({
+    items,
+    total,
+    pages: Math.ceil(total / limit) || 1,
+    page,
+  });
 }
 
 export async function POST(req: NextRequest) {

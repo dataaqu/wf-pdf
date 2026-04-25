@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { getPaginationItems } from "@/lib/pagination";
 
 interface HistoryItem {
   id: string;
@@ -52,17 +53,26 @@ export default function AdminPage() {
   const [previewId, setPreviewId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"history" | "companies">("history");
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [companyPage, setCompanyPage] = useState(1);
+  const [companyTotal, setCompanyTotal] = useState(0);
+  const [companyPages, setCompanyPages] = useState(1);
   const [newCompanyName, setNewCompanyName] = useState("");
   const [newCompanyTaxId, setNewCompanyTaxId] = useState("");
   const [companyLoading, setCompanyLoading] = useState(false);
 
   const fetchCompanies = useCallback(async () => {
-    const res = await fetch("/api/admin/companies");
+    const res = await fetch(`/api/admin/companies?page=${companyPage}`);
     if (res.ok) {
       const json = await res.json();
-      setCompanies(json);
+      setCompanies(json.items || []);
+      setCompanyTotal(json.total || 0);
+      const pagesValue = json.pages || 1;
+      setCompanyPages(pagesValue);
+      if (companyPage > pagesValue) {
+        setCompanyPage(pagesValue);
+      }
     }
-  }, []);
+  }, [companyPage]);
 
   const addCompany = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,6 +86,7 @@ export default function AdminPage() {
     if (res.ok) {
       setNewCompanyName("");
       setNewCompanyTaxId("");
+      setCompanyPage(1);
       fetchCompanies();
     }
     setCompanyLoading(false);
@@ -88,7 +99,11 @@ export default function AdminPage() {
       body: JSON.stringify({ id }),
     });
     if (res.ok) {
-      fetchCompanies();
+      if (companies.length === 1 && companyPage > 1) {
+        setCompanyPage(companyPage - 1);
+      } else {
+        fetchCompanies();
+      }
     }
   };
 
@@ -235,39 +250,67 @@ export default function AdminPage() {
 
             {/* Companies list */}
             {companies.length > 0 ? (
-              <div
-                className="rounded-xl border border-white/10 overflow-hidden backdrop-blur-md"
-                style={{ background: "rgba(255,255,255,0.03)" }}
-              >
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-left">
-                    <thead>
-                      <tr className="border-b border-white/10">
-                        <th className="px-4 py-3 text-white/50 font-medium" style={{ fontFamily: "var(--font-dachi)" }}>სახელი</th>
-                        <th className="px-4 py-3 text-white/50 font-medium" style={{ fontFamily: "var(--font-dachi)" }}>Tax ID</th>
-                        <th className="px-4 py-3 text-white/50 font-medium" style={{ fontFamily: "var(--font-dachi)" }}>მოქმედება</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {companies.map((company) => (
-                        <tr key={company.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                          <td className="px-4 py-3 text-white/70">{company.name}</td>
-                          <td className="px-4 py-3 text-white/70 font-mono text-xs">{company.taxId}</td>
-                          <td className="px-4 py-3">
-                            <button
-                              onClick={() => deleteCompany(company.id)}
-                              className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-red-400/30 text-red-400/70 hover:border-red-400 hover:text-red-400"
-                              style={{ backgroundColor: "rgba(255,255,255,0.06)", fontFamily: "var(--font-dachi)" }}
-                            >
-                              წაშლა
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+              <>
+                <div className="text-white/40 text-sm mb-3" style={{ fontFamily: "var(--font-dachi)" }}>
+                  სულ: {companyTotal} კომპანია
                 </div>
-              </div>
+                <div
+                  className="rounded-xl border border-white/10 overflow-hidden backdrop-blur-md"
+                  style={{ background: "rgba(255,255,255,0.03)" }}
+                >
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm text-left">
+                      <thead>
+                        <tr className="border-b border-white/10">
+                          <th className="px-4 py-3 text-white/50 font-medium" style={{ fontFamily: "var(--font-dachi)" }}>სახელი</th>
+                          <th className="px-4 py-3 text-white/50 font-medium" style={{ fontFamily: "var(--font-dachi)" }}>Tax ID</th>
+                          <th className="px-4 py-3 text-white/50 font-medium" style={{ fontFamily: "var(--font-dachi)" }}>მოქმედება</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {companies.map((company) => (
+                          <tr key={company.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+                            <td className="px-4 py-3 text-white/70">{company.name}</td>
+                            <td className="px-4 py-3 text-white/70 font-mono text-xs">{company.taxId}</td>
+                            <td className="px-4 py-3">
+                              <button
+                                onClick={() => deleteCompany(company.id)}
+                                className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-red-400/30 text-red-400/70 hover:border-red-400 hover:text-red-400"
+                                style={{ backgroundColor: "rgba(255,255,255,0.06)", fontFamily: "var(--font-dachi)" }}
+                              >
+                                წაშლა
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {companyPages > 1 && (
+                  <div className="flex items-center justify-center gap-2 mt-6 flex-wrap">
+                    {getPaginationItems(companyPage, companyPages).map((p, i) => (
+                      p === "ellipsis" ? (
+                        <span key={`e-${i}`} className="px-2 text-white/40 select-none">…</span>
+                      ) : (
+                        <button
+                          key={p}
+                          onClick={() => setCompanyPage(p)}
+                          className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
+                            p === companyPage
+                              ? "bg-emerald-400/20 text-emerald-400 border border-emerald-400"
+                              : "border border-white/10 text-white/50 hover:border-white/30"
+                          }`}
+                          style={p !== companyPage ? { backgroundColor: "rgba(255,255,255,0.06)" } : {}}
+                        >
+                          {p}
+                        </button>
+                      )
+                    ))}
+                  </div>
+                )}
+              </>
             ) : (
               <div
                 className="text-center py-20 text-white/30"
@@ -475,20 +518,24 @@ export default function AdminPage() {
 
             {/* Pagination */}
             {data.pages > 1 && (
-              <div className="flex items-center justify-center gap-2 mt-6">
-                {Array.from({ length: data.pages }, (_, i) => i + 1).map((p) => (
-                  <button
-                    key={p}
-                    onClick={() => setPage(p)}
-                    className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
-                      p === page
-                        ? "bg-emerald-400/20 text-emerald-400 border border-emerald-400"
-                        : "border border-white/10 text-white/50 hover:border-white/30"
-                    }`}
-                    style={p !== page ? { backgroundColor: "rgba(255,255,255,0.06)" } : {}}
-                  >
-                    {p}
-                  </button>
+              <div className="flex items-center justify-center gap-2 mt-6 flex-wrap">
+                {getPaginationItems(page, data.pages).map((p, i) => (
+                  p === "ellipsis" ? (
+                    <span key={`e-${i}`} className="px-2 text-white/40 select-none">…</span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => setPage(p)}
+                      className={`w-9 h-9 rounded-lg text-sm font-medium transition-all ${
+                        p === page
+                          ? "bg-emerald-400/20 text-emerald-400 border border-emerald-400"
+                          : "border border-white/10 text-white/50 hover:border-white/30"
+                      }`}
+                      style={p !== page ? { backgroundColor: "rgba(255,255,255,0.06)" } : {}}
+                    >
+                      {p}
+                    </button>
+                  )
                 ))}
               </div>
             )}

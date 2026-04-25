@@ -138,6 +138,11 @@ export default function TypeForm() {
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [pdfBlob, setPdfBlob] = useState<Blob | null>(null);
+  const [showCompanyModal, setShowCompanyModal] = useState(false);
+  const [newCompanyName, setNewCompanyName] = useState("");
+  const [newCompanyTaxId, setNewCompanyTaxId] = useState("");
+  const [companyCreating, setCompanyCreating] = useState(false);
+  const [companyCreateError, setCompanyCreateError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/companies")
@@ -154,6 +159,49 @@ export default function TypeForm() {
       } else if (type === "a") {
         setFormData((prev) => ({ ...prev, consignee: company.name, vat: company.taxId }));
       }
+    }
+  };
+
+  const openCompanyModal = () => {
+    setNewCompanyName("");
+    setNewCompanyTaxId("");
+    setCompanyCreateError(null);
+    setShowCompanyModal(true);
+  };
+
+  const closeCompanyModal = () => {
+    if (companyCreating) return;
+    setShowCompanyModal(false);
+    setCompanyCreateError(null);
+  };
+
+  const createCompany = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCompanyName.trim() || !newCompanyTaxId.trim()) return;
+    setCompanyCreating(true);
+    setCompanyCreateError(null);
+    try {
+      const res = await fetch("/api/companies", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newCompanyName.trim(), taxId: newCompanyTaxId.trim() }),
+      });
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.error || "ვერ მოხერხდა კომპანიის შექმნა");
+      }
+      const created: Company = await res.json();
+      setCompanies((prev) => {
+        const next = [...prev, created];
+        next.sort((a, b) => a.name.localeCompare(b.name));
+        return next;
+      });
+      handleCompanySelect(created.id);
+      setShowCompanyModal(false);
+    } catch (err) {
+      setCompanyCreateError(err instanceof Error ? err.message : "შეცდომა");
+    } finally {
+      setCompanyCreating(false);
     }
   };
 
@@ -273,25 +321,39 @@ export default function TypeForm() {
                 ) :
                 field.type === "companyField" ? (
                   <div key={field.name}>
-                    <label className="block text-sm font-medium text-white/70 mb-1" style={{ fontFamily: "var(--font-dachi)" }}>
-                      {field.label}
-                      {field.required && <span className="text-emerald-400 ml-1">*</span>}
-                    </label>
-                    {companies.length > 0 && (
-                      <select
-                        value=""
-                        onChange={(e) => handleCompanySelect(e.target.value)}
-                        className="w-full px-4 py-2.5 rounded-lg outline-none transition-all text-white border border-white/10 focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20 appearance-none mb-2"
-                        style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-sm font-medium text-white/70" style={{ fontFamily: "var(--font-dachi)" }}>
+                        {field.label}
+                        {field.required && <span className="text-emerald-400 ml-1">*</span>}
+                      </label>
+                      <button
+                        type="button"
+                        onClick={openCompanyModal}
+                        className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all border border-white/10 text-white/70 hover:border-emerald-400/40 hover:text-emerald-400 flex items-center gap-1"
+                        style={{ backgroundColor: "rgba(255,255,255,0.06)", fontFamily: "var(--font-dachi)" }}
                       >
-                        <option value="" disabled>აირჩიე კომპანია</option>
-                        {companies.map((c) => (
-                          <option key={c.id} value={c.id} style={{ backgroundColor: "#1f2023" }}>
-                            {c.name} — {c.taxId}
-                          </option>
-                        ))}
-                      </select>
-                    )}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="12" y1="5" x2="12" y2="19" />
+                          <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        ახალი კომპანია
+                      </button>
+                    </div>
+                    <select
+                      value=""
+                      onChange={(e) => handleCompanySelect(e.target.value)}
+                      className="w-full px-4 py-2.5 rounded-lg outline-none transition-all text-white border border-white/10 focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20 appearance-none mb-2"
+                      style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                    >
+                      <option value="" disabled>
+                        {companies.length > 0 ? "აირჩიე კომპანია" : "კომპანიები არ არის"}
+                      </option>
+                      {companies.map((c) => (
+                        <option key={c.id} value={c.id} style={{ backgroundColor: "#1f2023" }}>
+                          {c.name} — {c.taxId}
+                        </option>
+                      ))}
+                    </select>
                     <input
                       type="text"
                       required={field.required}
@@ -783,6 +845,65 @@ export default function TypeForm() {
           </div>
         </div>
       </div>
+
+      {showCompanyModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
+          onClick={closeCompanyModal}
+        >
+          <div
+            className="w-full max-w-md rounded-xl border border-white/10 p-6"
+            style={{ backgroundColor: "#1f2023", fontFamily: "var(--font-dachi)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-xl font-bold text-white mb-4">ახალი კომპანია</h3>
+            <form onSubmit={createCompany} className="space-y-3">
+              <input
+                type="text"
+                value={newCompanyName}
+                onChange={(e) => setNewCompanyName(e.target.value)}
+                placeholder="კომპანიის სახელი"
+                className="w-full px-4 py-2.5 rounded-lg outline-none transition-all text-white placeholder-white/30 border border-white/10 focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20"
+                style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                autoFocus
+                required
+              />
+              <input
+                type="text"
+                value={newCompanyTaxId}
+                onChange={(e) => setNewCompanyTaxId(e.target.value)}
+                placeholder="Tax ID"
+                className="w-full px-4 py-2.5 rounded-lg outline-none transition-all text-white placeholder-white/30 border border-white/10 focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20"
+                style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                required
+              />
+              {companyCreateError && (
+                <div className="text-red-400 text-sm">{companyCreateError}</div>
+              )}
+              <div className="flex gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={closeCompanyModal}
+                  disabled={companyCreating}
+                  className="flex-1 px-4 py-2.5 rounded-lg text-sm font-medium transition-all border border-white/10 text-white/70 hover:border-white/30 disabled:opacity-50"
+                  style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                >
+                  გაუქმება
+                </button>
+                <button
+                  type="submit"
+                  disabled={companyCreating}
+                  className="flex-1 px-4 py-2.5 text-white font-medium rounded-lg transition-all hover:shadow-[0_0_20px_rgba(16,185,129,0.2)] disabled:opacity-50"
+                  style={{ backgroundColor: "#307654" }}
+                >
+                  {companyCreating ? "..." : "შენახვა"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 }
