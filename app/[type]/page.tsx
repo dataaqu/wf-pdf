@@ -61,6 +61,7 @@ const CURRENCIES = ["GEL", "USD", "EUR"];
 interface ServiceItem {
   description: string;
   amount: string;
+  isCustom?: boolean;
 }
 
 interface ServicePriceItem {
@@ -240,7 +241,9 @@ export default function TypeForm() {
         submitData.servicePriceItems = JSON.stringify(validPrices);
       }
       if (type === "b") {
-        const validItems = serviceItems.filter(item => item.description && item.amount);
+        const validItems = serviceItems
+          .filter(item => item.description && item.amount)
+          .map(({ description, amount }) => ({ description, amount }));
         submitData.serviceItems = JSON.stringify(validItems);
         const validUnits = transportUnits.filter(u => u.trim());
         submitData.transportUnitNumbers = validUnits.join("\n");
@@ -515,12 +518,48 @@ export default function TypeForm() {
                     <div className="space-y-3">
                       {serviceItems.map((item, index) => (
                         <div key={index} className="flex gap-2 items-center">
+                          {item.isCustom ? (
+                            <div className="flex-1 flex gap-2 items-center">
+                              <input
+                                type="text"
+                                required
+                                autoFocus
+                                value={item.description}
+                                onChange={(e) => {
+                                  const updated = [...serviceItems];
+                                  updated[index].description = e.target.value;
+                                  setServiceItems(updated);
+                                }}
+                                placeholder="Custom service name"
+                                className="flex-1 px-4 py-2.5 rounded-lg outline-none transition-all text-white placeholder-white/30 border border-white/10 focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20"
+                                style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
+                              />
+                              <button
+                                type="button"
+                                title="Choose from list"
+                                onClick={() => {
+                                  const updated = [...serviceItems];
+                                  updated[index] = { ...updated[index], isCustom: false, description: "" };
+                                  setServiceItems(updated);
+                                }}
+                                className="text-white/40 hover:text-white/70 transition-colors p-1"
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <line x1="8" y1="6" x2="21" y2="6" /><line x1="8" y1="12" x2="21" y2="12" /><line x1="8" y1="18" x2="21" y2="18" /><line x1="3" y1="6" x2="3.01" y2="6" /><line x1="3" y1="12" x2="3.01" y2="12" /><line x1="3" y1="18" x2="3.01" y2="18" />
+                                </svg>
+                              </button>
+                            </div>
+                          ) : (
                           <select
                             required
                             value={item.description}
                             onChange={(e) => {
                               const updated = [...serviceItems];
-                              updated[index].description = e.target.value;
+                              if (e.target.value === "__custom__") {
+                                updated[index] = { ...updated[index], isCustom: true, description: "" };
+                              } else {
+                                updated[index].description = e.target.value;
+                              }
                               setServiceItems(updated);
                             }}
                             className="flex-1 px-4 py-2.5 rounded-lg outline-none transition-all text-white border border-white/10 focus:border-emerald-400/40 focus:ring-2 focus:ring-emerald-400/20 appearance-none"
@@ -530,7 +569,9 @@ export default function TypeForm() {
                             {SERVICE_OPTIONS.map((opt) => (
                               <option key={opt} value={opt} style={{ backgroundColor: "#1f2023" }}>{opt}</option>
                             ))}
+                            <option value="__custom__" style={{ backgroundColor: "#1f2023" }}>✏️ Custom…</option>
                           </select>
+                          )}
                           <div
                             className="flex items-center w-36 rounded-lg border border-white/10 focus-within:border-emerald-400/40 focus-within:ring-2 focus-within:ring-emerald-400/20 transition-all"
                             style={{ backgroundColor: "rgba(255,255,255,0.06)" }}
