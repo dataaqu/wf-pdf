@@ -132,9 +132,11 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error) {
+    // Full detail stays in server logs; the client gets a generic message.
     console.error("PDF generation error:", error);
-    // Surface the real error message to aid production debugging (internal tool).
-    const message = error instanceof Error ? error.message : "Failed to generate PDF";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to generate PDF" },
+      { status: 500 }
+    );
   }
 }

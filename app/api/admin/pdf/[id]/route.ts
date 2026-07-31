@@ -59,8 +59,7 @@ export async function GET(
     });
   } catch (error) {
     console.error("Admin PDF render error:", error);
-    const message = error instanceof Error ? error.message : "Failed to render PDF";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Failed to render PDF" }, { status: 500 });
   } finally {
     if (browser) await browser.close();
   }
