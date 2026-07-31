@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import puppeteer from "puppeteer";
+import { launchBrowser } from "@/lib/pdf";
 
 export async function GET(
   request: NextRequest,
@@ -39,14 +39,11 @@ export async function GET(
   }
 
   // Generate PDF from stored HTML
-  const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-  });
-
+  let browser;
   try {
+    browser = await launchBrowser();
     const page = await browser.newPage();
-    await page.setContent(record.htmlContent, { waitUntil: "networkidle0", timeout: 30000 });
+    await page.setContent(record.htmlContent, { waitUntil: "domcontentloaded", timeout: 30000 });
     const pdfBuffer = await page.pdf({
       format: "A4",
       margin: { top: "0", right: "0", bottom: "0", left: "0" },
@@ -60,7 +57,11 @@ export async function GET(
         "Content-Disposition": `attachment; filename="${record.fileName}"`,
       },
     });
+  } catch (error) {
+    console.error("Admin PDF render error:", error);
+    const message = error instanceof Error ? error.message : "Failed to render PDF";
+    return NextResponse.json({ error: message }, { status: 500 });
   } finally {
-    await browser.close();
+    if (browser) await browser.close();
   }
 }
