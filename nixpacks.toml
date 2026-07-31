@@ -1,12 +1,32 @@
 # Railway / Nixpacks build config
 #
-# PDF generation uses @sparticuz/chromium at runtime — a self-contained Chromium
-# that bundles all its own shared libraries. So we need NO system Chromium
-# (Ubuntu's apt `chromium` is a broken snap wrapper that fails in containers).
+# PDF generation uses @sparticuz/chromium at runtime. It provides the Chromium
+# binary itself, but on a non-Lambda host (Railway = Ubuntu Noble) it needs
+# Chromium's shared libraries installed from the OS repositories.
+#
+# Package names use Ubuntu 24.04 "Noble" naming — several libs were renamed with
+# a `t64` suffix in the time64 transition (libatk, libcups, libasound, ...).
+# apt aborts the whole install if ANY name has no candidate, so these are exact.
 
 [phases.setup]
-# Latin font fallbacks; the app also embeds its own fonts as base64.
-aptPkgs = ["fonts-liberation"]
+aptPkgs = [
+  "fonts-liberation",
+  "libnss3",
+  "libnspr4",
+  "libatk1.0-0t64",
+  "libatk-bridge2.0-0t64",
+  "libcups2t64",
+  "libdrm2",
+  "libxkbcommon0",
+  "libxcomposite1",
+  "libxdamage1",
+  "libxfixes3",
+  "libxrandr2",
+  "libgbm1",
+  "libpango-1.0-0",
+  "libcairo2",
+  "libasound2t64",
+]
 
 [variables]
 # Skip Puppeteer's ~150MB bundled Chromium download — unused in production.
