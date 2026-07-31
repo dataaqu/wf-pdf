@@ -1,0 +1,14 @@
+# Railway / Nixpacks build config
+# Installs a system Chromium (with all shared libraries) for Puppeteer,
+# so it does not rely on the bundled Chromium that lacks runtime deps.
+
+[phases.setup]
+# apt resolves Chromium's own library dependencies automatically.
+# fonts-liberation covers common Latin fallbacks; app fonts are embedded as base64.
+aptPkgs = ["chromium", "fonts-liberation", "libnss3", "libgbm1", "libasound2"]
+
+[variables]
+# Point Puppeteer at the apt-installed Chromium instead of its bundled one...
+PUPPETEER_EXECUTABLE_PATH = "/usr/bin/chromium"
+# ...and skip the ~150MB Chromium download during `npm install` (we don't use it).
+PUPPETEER_SKIP_DOWNLOAD = "true"

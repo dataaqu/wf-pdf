@@ -259,6 +259,9 @@ export async function generatePdf(
 ): Promise<Buffer> {
   const browser = await puppeteer.launch({
     headless: true,
+    // On Railway/production we use the apt-installed Chromium (see nixpacks.toml).
+    // When PUPPETEER_EXECUTABLE_PATH is unset (local dev), Puppeteer uses its bundled Chromium.
+    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
