@@ -42,7 +42,7 @@ export async function GET(
   try {
     browser = await launchBrowser();
     const page = await browser.newPage();
-    await page.setContent(record.htmlContent, { waitUntil: "networkidle0", timeout: 30000 });
+    await page.setContent(record.htmlContent, { waitUntil: "domcontentloaded", timeout: 30000 });
     const pdfBuffer = await page.pdf({
       format: "A4",
       margin: { top: "0", right: "0", bottom: "0", left: "0" },

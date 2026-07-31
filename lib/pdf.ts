@@ -1,4 +1,3 @@
-import puppeteer from "puppeteer";
 import fs from "fs";
 import path from "path";
 
@@ -254,33 +253,29 @@ export function prepareHtml(
   return html;
 }
 
-// Find a usable Chromium/Chrome binary.
-// On Railway/production we use the apt-installed system Chromium (see nixpacks.toml);
-// locally, returning undefined lets Puppeteer use its bundled Chromium.
-function resolveChromiumPath(): string | undefined {
-  const candidates = [
-    process.env.PUPPETEER_EXECUTABLE_PATH,
-    "/usr/bin/chromium",
-    "/usr/bin/chromium-browser",
-    "/usr/bin/google-chrome-stable",
-    "/usr/bin/google-chrome",
-    "/snap/bin/chromium",
-  ].filter(Boolean) as string[];
+// Launch a Chromium browser that works in both environments:
+// - Production (Railway/containers): @sparticuz/chromium — a self-contained
+//   Chromium that ships all its own libraries, so it needs no apt/system deps
+//   and avoids Ubuntu's broken snap-only chromium package.
+// - Local dev: full `puppeteer` with its bundled Chromium.
+export async function launchBrowser(): Promise<import("puppeteer-core").Browser> {
+  const isProd = process.env.NODE_ENV === "production";
 
-  for (const candidate of candidates) {
-    try {
-      if (fs.existsSync(candidate)) return candidate;
-    } catch {
-      // ignore and try the next candidate
-    }
+  if (isProd) {
+    const chromium = (await import("@sparticuz/chromium")).default;
+    const puppeteerCore = (await import("puppeteer-core")).default;
+
+    return puppeteerCore.launch({
+      args: [...chromium.args, "--disable-dev-shm-usage"],
+      executablePath:
+        process.env.PUPPETEER_EXECUTABLE_PATH || (await chromium.executablePath()),
+      headless: true,
+    });
   }
-  return undefined;
-}
 
-export async function launchBrowser() {
+  const puppeteer = (await import("puppeteer")).default;
   return puppeteer.launch({
     headless: true,
-    executablePath: resolveChromiumPath(),
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",

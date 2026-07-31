@@ -1,17 +1,13 @@
 # Railway / Nixpacks build config
-# Installs a system Chromium (with all shared libraries) for Puppeteer,
-# so it does not rely on the bundled Chromium that lacks runtime deps.
+#
+# PDF generation uses @sparticuz/chromium at runtime — a self-contained Chromium
+# that bundles all its own shared libraries. So we need NO system Chromium
+# (Ubuntu's apt `chromium` is a broken snap wrapper that fails in containers).
 
 [phases.setup]
-# Installing `chromium` pulls in all its shared-library dependencies
-# automatically (libnss3, libgbm1, libasound2t64, ...), so we don't list them
-# explicitly — package names differ across Ubuntu releases (e.g. Noble renamed
-# libasound2 -> libasound2t64). fonts-liberation covers Latin fallbacks;
-# app fonts are embedded as base64.
-aptPkgs = ["chromium", "fonts-liberation"]
+# Latin font fallbacks; the app also embeds its own fonts as base64.
+aptPkgs = ["fonts-liberation"]
 
 [variables]
-# Point Puppeteer at the apt-installed Chromium instead of its bundled one...
-PUPPETEER_EXECUTABLE_PATH = "/usr/bin/chromium"
-# ...and skip the ~150MB Chromium download during `npm install` (we don't use it).
+# Skip Puppeteer's ~150MB bundled Chromium download — unused in production.
 PUPPETEER_SKIP_DOWNLOAD = "true"
