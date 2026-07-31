@@ -254,14 +254,33 @@ export function prepareHtml(
   return html;
 }
 
-export async function generatePdf(
-  html: string
-): Promise<Buffer> {
-  const browser = await puppeteer.launch({
+// Find a usable Chromium/Chrome binary.
+// On Railway/production we use the apt-installed system Chromium (see nixpacks.toml);
+// locally, returning undefined lets Puppeteer use its bundled Chromium.
+function resolveChromiumPath(): string | undefined {
+  const candidates = [
+    process.env.PUPPETEER_EXECUTABLE_PATH,
+    "/usr/bin/chromium",
+    "/usr/bin/chromium-browser",
+    "/usr/bin/google-chrome-stable",
+    "/usr/bin/google-chrome",
+    "/snap/bin/chromium",
+  ].filter(Boolean) as string[];
+
+  for (const candidate of candidates) {
+    try {
+      if (fs.existsSync(candidate)) return candidate;
+    } catch {
+      // ignore and try the next candidate
+    }
+  }
+  return undefined;
+}
+
+export async function launchBrowser() {
+  return puppeteer.launch({
     headless: true,
-    // On Railway/production we use the apt-installed Chromium (see nixpacks.toml).
-    // When PUPPETEER_EXECUTABLE_PATH is unset (local dev), Puppeteer uses its bundled Chromium.
-    executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
+    executablePath: resolveChromiumPath(),
     args: [
       "--no-sandbox",
       "--disable-setuid-sandbox",
@@ -270,6 +289,12 @@ export async function generatePdf(
       "--disable-extensions",
     ],
   });
+}
+
+export async function generatePdf(
+  html: string
+): Promise<Buffer> {
+  const browser = await launchBrowser();
 
   try {
     const page = await browser.newPage();
